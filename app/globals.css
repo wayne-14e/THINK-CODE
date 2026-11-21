@@ -1,0 +1,151 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+:root {
+  --font-plus-jakarta: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  --font-dm-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-jetbrains-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+
+  --surface-deep: #121113;
+  --surface-raised: #1A191C;
+  --surface-overlay: #242327;
+  --surface-border: #424242;
+
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8B8BC;
+  --text-tertiary: #8A898F;
+
+  --brand-primary: #9EFF00;
+  --brand-primary-hover: #B6FF3A;
+  --brand-ink: #121113;
+
+  --accent-cyan: #03EDFA;
+  --accent-amber: #F8A502;
+
+  --status-success: #9EFF00;
+  --status-warning: #F8A502;
+  --status-error: #FF5C5C;
+  --status-info: #03EDFA;
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-display: var(--font-plus-jakarta), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-sans: var(--font-dm-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+}
+
+@layer base {
+  html,
+  body {
+    background-color: var(--surface-deep);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+
+  code,
+  pre,
+  kbd,
+  samp {
+    font-family: var(--font-mono);
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Landing-page lighting: each accent has one clear visual role without competing with lime. */
+.hero-stage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.hero-stage::before {
+  position: absolute;
+  z-index: -1;
+  inset: -20% 5% 12%;
+  content: "";
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 18%, color-mix(in srgb, var(--brand-primary) 13%, transparent), transparent 52%),
+    radial-gradient(ellipse at 22% 64%, color-mix(in srgb, var(--accent-cyan) 8%, transparent), transparent 42%),
+    radial-gradient(ellipse at 78% 62%, color-mix(in srgb, var(--accent-amber) 7%, transparent), transparent 40%);
+  filter: blur(14px);
+}
+
+.accent-spectrum {
+  color: transparent;
+  background: linear-gradient(104deg, var(--brand-primary) 5%, var(--accent-cyan) 48%, var(--accent-amber) 96%);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+.hero-visual {
+  box-shadow:
+    0 24px 72px color-mix(in srgb, var(--brand-primary) 8%, transparent),
+    0 8px 32px color-mix(in srgb, var(--accent-cyan) 5%, transparent);
+}
+
+.ambient-card {
+  --card-accent: var(--brand-primary);
+  position: relative;
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--card-accent) 4%, transparent);
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.ambient-card--lime {
+  --card-accent: var(--brand-primary);
+}
+
+.ambient-card--cyan {
+  --card-accent: var(--accent-cyan);
+}
+
+.ambient-card--amber {
+  --card-accent: var(--accent-amber);
+}
+
+.ambient-card:hover {
+  border-color: color-mix(in srgb, var(--card-accent) 55%, var(--surface-border));
+  box-shadow: 0 16px 44px color-mix(in srgb, var(--card-accent) 9%, transparent);
+}
+
+.ambient-card .track-arrow {
+  color: var(--card-accent);
+}
+
+.ambient-card .track-node {
+  background-color: color-mix(in srgb, var(--card-accent) 22%, var(--surface-overlay));
+}
+
+/* Custom hairline scrollbars for editor & reading rails */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}

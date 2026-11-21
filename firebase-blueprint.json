@@ -1,0 +1,204 @@
+{
+  "entities": {
+    "PublicProfile": {
+      "title": "PublicProfile",
+      "description": "Public learner or mentor summary used for leaderboards and discussion attribution (contains no PII).",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "nickname": { "type": "string", "minLength": 2, "maxLength": 40 },
+        "role": { "type": "string", "enum": ["learner", "mentor", "admin"] },
+        "avatarInitials": { "type": "string", "minLength": 1, "maxLength": 4 },
+        "githubHandle": { "type": "string", "minLength": 0, "maxLength": 40 },
+        "telegramHandle": { "type": "string", "minLength": 0, "maxLength": 40 },
+        "xp": { "type": "number" },
+        "weeklyXp": { "type": "number" },
+        "currentStreak": { "type": "number" },
+        "longestStreak": { "type": "number" },
+        "solvedEasy": { "type": "number" },
+        "solvedMedium": { "type": "number" },
+        "solvedHard": { "type": "number" },
+        "completedModulesCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "nickname", "role", "avatarInitials", "xp", "weeklyXp", "currentStreak", "longestStreak", "solvedEasy", "solvedMedium", "solvedHard", "completedModulesCount", "createdAt", "updatedAt"]
+    },
+    "UserPrivate": {
+      "title": "UserPrivate",
+      "description": "Private member record holding email and personal curriculum completion state.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "email": { "type": "string", "format": "email", "maxLength": 160 },
+        "lastSolvedDate": { "type": "string", "maxLength": 20 },
+        "solvedProblemIds": { "type": "array" },
+        "completedModuleIds": { "type": "array" },
+        "thinkPassedProblemIds": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "lastSolvedDate", "solvedProblemIds", "completedModuleIds", "thinkPassedProblemIds", "createdAt", "updatedAt"]
+    },
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Elevated admin/mentor role grant record.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "email": { "type": "string", "format": "email", "maxLength": 160 },
+        "role": { "type": "string", "enum": ["mentor", "admin"] },
+        "grantedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role", "grantedAt"]
+    },
+    "Track": {
+      "title": "Track",
+      "description": "Structured academic syllabus track with ordered learning modules.",
+      "type": "object",
+      "properties": {
+        "slug": { "type": "string", "minLength": 2, "maxLength": 64, "pattern": "^[a-z0-9\\-]+$" },
+        "title": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "subtitle": { "type": "string", "minLength": 2, "maxLength": 240 },
+        "order": { "type": "number" },
+        "modules": { "type": "array" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["slug", "title", "subtitle", "order", "modules", "updatedAt"]
+    },
+    "Problem": {
+      "title": "Problem",
+      "description": "Coding challenge with Think-Before-You-Run check, multi-language starter code, and test cases.",
+      "type": "object",
+      "properties": {
+        "slug": { "type": "string", "minLength": 2, "maxLength": 64, "pattern": "^[a-z0-9\\-]+$" },
+        "title": { "type": "string", "minLength": 2, "maxLength": 120 },
+        "difficulty": { "type": "string", "enum": ["easy", "medium", "hard"] },
+        "trackSlug": { "type": "string", "minLength": 2, "maxLength": 64 },
+        "isDaily": { "type": "boolean" },
+        "dailyDate": { "type": "string", "maxLength": 20 },
+        "xpReward": { "type": "number" },
+        "description": { "type": "string", "minLength": 10, "maxLength": 8000 },
+        "constraints": { "type": "string", "maxLength": 2000 },
+        "editorial": { "type": "string", "maxLength": 8000 },
+        "examples": { "type": "array" },
+        "starterCode": { "type": "object" },
+        "thinkPrompt": { "type": "object" },
+        "testCases": { "type": "array" },
+        "createdByUid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["slug", "title", "difficulty", "trackSlug", "isDaily", "xpReward", "description", "constraints", "editorial", "examples", "starterCode", "thinkPrompt", "testCases", "createdByUid", "createdAt", "updatedAt"]
+    },
+    "DiscussionComment": {
+      "title": "DiscussionComment",
+      "description": "Per-problem human mentorship question or answer thread entry.",
+      "type": "object",
+      "properties": {
+        "problemId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "authorUid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "authorNickname": { "type": "string", "minLength": 2, "maxLength": 40 },
+        "authorRole": { "type": "string", "enum": ["learner", "mentor", "admin"] },
+        "body": { "type": "string", "minLength": 2, "maxLength": 4000 },
+        "codeSnippet": { "type": "string", "maxLength": 4000 },
+        "language": { "type": "string", "enum": ["python", "javascript", "cpp", "none"] },
+        "parentId": { "type": "string", "maxLength": 128 },
+        "isMentorAnswer": { "type": "boolean" },
+        "isPinned": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["problemId", "authorUid", "authorNickname", "authorRole", "body", "codeSnippet", "language", "parentId", "isMentorAnswer", "isPinned", "createdAt", "updatedAt"]
+    },
+    "Submission": {
+      "title": "Submission",
+      "description": "Immutable code execution verdict log for an individual learner.",
+      "type": "object",
+      "properties": {
+        "userUid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "problemId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "problemTitle": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "language": { "type": "string", "enum": ["python", "javascript", "cpp"] },
+        "code": { "type": "string", "minLength": 1, "maxLength": 25000 },
+        "status": { "type": "string", "enum": ["Accepted", "Wrong Answer", "Time Limit Exceeded", "Runtime Error"] },
+        "runtimeMs": { "type": "number" },
+        "passedCount": { "type": "number" },
+        "totalCount": { "type": "number" },
+        "thinkPassed": { "type": "boolean" },
+        "xpAwarded": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userUid", "problemId", "problemTitle", "language", "code", "status", "runtimeMs", "passedCount", "totalCount", "thinkPassed", "xpAwarded", "createdAt"]
+    },
+    "Workshop": {
+      "title": "Workshop",
+      "description": "Live Sunday Discord workshop or archived session with slides and notebooks.",
+      "type": "object",
+      "properties": {
+        "issueNumber": { "type": "string", "minLength": 1, "maxLength": 12 },
+        "title": { "type": "string", "minLength": 2, "maxLength": 140 },
+        "summary": { "type": "string", "minLength": 10, "maxLength": 2000 },
+        "trackSlug": { "type": "string", "minLength": 2, "maxLength": 64 },
+        "startsAtIso": { "type": "string", "minLength": 10, "maxLength": 40 },
+        "academyTimezone": { "type": "string", "minLength": 3, "maxLength": 32 },
+        "prerequisites": { "type": "string", "maxLength": 400 },
+        "locationUrl": { "type": "string", "maxLength": 400 },
+        "isUpcoming": { "type": "boolean" },
+        "resources": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["issueNumber", "title", "summary", "trackSlug", "startsAtIso", "academyTimezone", "prerequisites", "locationUrl", "isUpcoming", "resources", "createdAt", "updatedAt"]
+    },
+    "WorkshopRsvp": {
+      "title": "WorkshopRsvp",
+      "description": "Attendee RSVP marker for a specific workshop.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "nickname": { "type": "string", "minLength": 2, "maxLength": 40 },
+        "rsvpedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "nickname", "rsvpedAt"]
+    }
+  },
+  "firestore": {
+    "/publicProfiles/{uid}": {
+      "schema": { "$ref": "#/entities/PublicProfile" },
+      "description": "Public leaderboard & author attribution profiles (PII-free)."
+    },
+    "/usersPrivate/{uid}": {
+      "schema": { "$ref": "#/entities/UserPrivate" },
+      "description": "Private user account data and solved/module completion arrays."
+    },
+    "/admins/{uid}": {
+      "schema": { "$ref": "#/entities/AdminRecord" },
+      "description": "Elevated mentor/admin directory."
+    },
+    "/tracks/{trackId}": {
+      "schema": { "$ref": "#/entities/Track" },
+      "description": "Structured syllabus tracks and ordered lesson modules."
+    },
+    "/problems/{problemId}": {
+      "schema": { "$ref": "#/entities/Problem" },
+      "description": "Coding sandbox problems, Think-Before-You-Run checks, and test suites."
+    },
+    "/problems/{problemId}/discussions/{commentId}": {
+      "schema": { "$ref": "#/entities/DiscussionComment" },
+      "description": "Human mentorship discussion threads scoped to each problem."
+    },
+    "/usersPrivate/{uid}/submissions/{submissionId}": {
+      "schema": { "$ref": "#/entities/Submission" },
+      "description": "Immutable submission verdict history owned by the learner."
+    },
+    "/workshops/{workshopId}": {
+      "schema": { "$ref": "#/entities/Workshop" },
+      "description": "Upcoming Sunday sessions and archived workshop repositories."
+    },
+    "/workshops/{workshopId}/rsvps/{uid}": {
+      "schema": { "$ref": "#/entities/WorkshopRsvp" },
+      "description": "Learner RSVPs per workshop."
+    }
+  }
+}

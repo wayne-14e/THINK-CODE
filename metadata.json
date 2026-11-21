@@ -1,0 +1,6 @@
+{
+  "name": "THINK//CODE Academy",
+  "description": "Serious algorithmic thinking, competitive programming sandbox, and live Sunday workshop academy — Think. Code. Repeat.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

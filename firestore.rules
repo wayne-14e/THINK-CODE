@@ -1,0 +1,417 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Hardened Global Primitives
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        request.auth.token.email == 'sardieyeee08@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // 3. Entity Validation Blueprints
+    function isValidPublicProfile(data) {
+      return data.keys().hasAll([
+        'uid', 'nickname', 'role', 'avatarInitials', 'xp', 'weeklyXp',
+        'currentStreak', 'longestStreak', 'solvedEasy', 'solvedMedium',
+        'solvedHard', 'completedModulesCount', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'uid', 'nickname', 'role', 'avatarInitials', 'githubHandle',
+        'telegramHandle', 'xp', 'weeklyXp', 'currentStreak', 'longestStreak',
+        'solvedEasy', 'solvedMedium', 'solvedHard', 'completedModulesCount',
+        'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.uid) &&
+      data.nickname is string && data.nickname.size() >= 2 && data.nickname.size() <= 40 &&
+      data.role in ['learner', 'mentor', 'admin'] &&
+      data.avatarInitials is string && data.avatarInitials.size() >= 1 && data.avatarInitials.size() <= 4 &&
+      (!('githubHandle' in data) || (data.githubHandle is string && data.githubHandle.size() <= 40)) &&
+      (!('telegramHandle' in data) || (data.telegramHandle is string && data.telegramHandle.size() <= 40)) &&
+      data.xp is int && data.xp >= 0 && data.xp <= 1000000 &&
+      data.weeklyXp is int && data.weeklyXp >= 0 && data.weeklyXp <= 100000 &&
+      data.currentStreak is int && data.currentStreak >= 0 && data.currentStreak <= 5000 &&
+      data.longestStreak is int && data.longestStreak >= 0 && data.longestStreak <= 5000 &&
+      data.solvedEasy is int && data.solvedEasy >= 0 && data.solvedEasy <= 5000 &&
+      data.solvedMedium is int && data.solvedMedium >= 0 && data.solvedMedium <= 5000 &&
+      data.solvedHard is int && data.solvedHard >= 0 && data.solvedHard <= 5000 &&
+      data.completedModulesCount is int && data.completedModulesCount >= 0 && data.completedModulesCount <= 500 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidUserPrivate(data) {
+      return data.keys().hasAll([
+        'uid', 'email', 'lastSolvedDate', 'solvedProblemIds',
+        'completedModuleIds', 'thinkPassedProblemIds', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'uid', 'email', 'lastSolvedDate', 'solvedProblemIds',
+        'completedModuleIds', 'thinkPassedProblemIds', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.uid) &&
+      data.email is string && data.email.size() >= 3 && data.email.size() <= 160 &&
+      data.lastSolvedDate is string && data.lastSolvedDate.size() <= 20 &&
+      data.solvedProblemIds is list && data.solvedProblemIds.size() <= 500 &&
+      (data.solvedProblemIds.size() == 0 || data.solvedProblemIds[0] is string) &&
+      data.completedModuleIds is list && data.completedModuleIds.size() <= 200 &&
+      (data.completedModuleIds.size() == 0 || data.completedModuleIds[0] is string) &&
+      data.thinkPassedProblemIds is list && data.thinkPassedProblemIds.size() <= 500 &&
+      (data.thinkPassedProblemIds.size() == 0 || data.thinkPassedProblemIds[0] is string) &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidAdminRecord(data) {
+      return data.keys().hasAll(['uid', 'email', 'role', 'grantedAt']) &&
+      data.keys().hasOnly(['uid', 'email', 'role', 'grantedAt']) &&
+      isValidId(data.uid) &&
+      data.email is string && data.email.size() >= 3 && data.email.size() <= 160 &&
+      data.role in ['mentor', 'admin'] &&
+      data.grantedAt is timestamp;
+    }
+
+    function isValidTrack(data) {
+      return data.keys().hasAll(['slug', 'title', 'subtitle', 'order', 'modules', 'updatedAt']) &&
+      data.keys().hasOnly(['slug', 'title', 'subtitle', 'order', 'modules', 'updatedAt']) &&
+      data.slug is string && data.slug.size() >= 2 && data.slug.size() <= 64 &&
+      data.title is string && data.title.size() >= 2 && data.title.size() <= 100 &&
+      data.subtitle is string && data.subtitle.size() >= 2 && data.subtitle.size() <= 240 &&
+      data.order is int && data.order >= 0 && data.order <= 100 &&
+      data.modules is list && data.modules.size() >= 1 && data.modules.size() <= 30 &&
+      data.modules[0] is map &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidProblem(data) {
+      return data.keys().hasAll([
+        'slug', 'title', 'difficulty', 'trackSlug', 'isDaily', 'xpReward',
+        'description', 'constraints', 'editorial', 'examples', 'starterCode',
+        'thinkPrompt', 'testCases', 'createdByUid', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'slug', 'title', 'difficulty', 'trackSlug', 'isDaily', 'dailyDate',
+        'xpReward', 'description', 'constraints', 'editorial', 'examples',
+        'starterCode', 'thinkPrompt', 'testCases', 'createdByUid',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.slug is string && data.slug.size() >= 2 && data.slug.size() <= 64 &&
+      data.title is string && data.title.size() >= 2 && data.title.size() <= 120 &&
+      data.difficulty in ['easy', 'medium', 'hard'] &&
+      data.trackSlug is string && data.trackSlug.size() >= 2 && data.trackSlug.size() <= 64 &&
+      data.isDaily is bool &&
+      (!('dailyDate' in data) || (data.dailyDate is string && data.dailyDate.size() <= 20)) &&
+      data.xpReward is int && data.xpReward >= 10 && data.xpReward <= 500 &&
+      data.description is string && data.description.size() >= 10 && data.description.size() <= 8000 &&
+      data.constraints is string && data.constraints.size() <= 2000 &&
+      data.editorial is string && data.editorial.size() <= 8000 &&
+      data.examples is list && data.examples.size() >= 1 && data.examples.size() <= 10 &&
+      data.examples[0] is map &&
+      data.starterCode is map &&
+      data.thinkPrompt is map &&
+      data.testCases is list && data.testCases.size() >= 1 && data.testCases.size() <= 25 &&
+      data.testCases[0] is map &&
+      isValidId(data.createdByUid) &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidDiscussion(data) {
+      return data.keys().hasAll([
+        'problemId', 'authorUid', 'authorNickname', 'authorRole', 'body',
+        'codeSnippet', 'language', 'parentId', 'isMentorAnswer', 'isPinned',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'problemId', 'authorUid', 'authorNickname', 'authorRole', 'body',
+        'codeSnippet', 'language', 'parentId', 'isMentorAnswer', 'isPinned',
+        'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.problemId) &&
+      isValidId(data.authorUid) &&
+      data.authorNickname is string && data.authorNickname.size() >= 2 && data.authorNickname.size() <= 40 &&
+      data.authorRole in ['learner', 'mentor', 'admin'] &&
+      data.body is string && data.body.size() >= 2 && data.body.size() <= 4000 &&
+      data.codeSnippet is string && data.codeSnippet.size() <= 4000 &&
+      data.language in ['python', 'javascript', 'cpp', 'none'] &&
+      data.parentId is string && data.parentId.size() <= 128 &&
+      data.isMentorAnswer is bool &&
+      data.isPinned is bool &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidSubmission(data) {
+      return data.keys().hasAll([
+        'userUid', 'problemId', 'problemTitle', 'language', 'code',
+        'status', 'runtimeMs', 'passedCount', 'totalCount', 'thinkPassed',
+        'xpAwarded', 'createdAt'
+      ]) &&
+      data.keys().hasOnly([
+        'userUid', 'problemId', 'problemTitle', 'language', 'code',
+        'status', 'runtimeMs', 'passedCount', 'totalCount', 'thinkPassed',
+        'xpAwarded', 'createdAt'
+      ]) &&
+      isValidId(data.userUid) &&
+      isValidId(data.problemId) &&
+      data.problemTitle is string && data.problemTitle.size() >= 1 && data.problemTitle.size() <= 120 &&
+      data.language in ['python', 'javascript', 'cpp'] &&
+      data.code is string && data.code.size() >= 1 && data.code.size() <= 25000 &&
+      data.status in ['Accepted', 'Wrong Answer', 'Time Limit Exceeded', 'Runtime Error'] &&
+      data.runtimeMs is int && data.runtimeMs >= 0 && data.runtimeMs <= 60000 &&
+      data.passedCount is int && data.passedCount >= 0 && data.passedCount <= 50 &&
+      data.totalCount is int && data.totalCount >= 1 && data.totalCount <= 50 &&
+      data.thinkPassed is bool &&
+      data.xpAwarded is int && data.xpAwarded >= 0 && data.xpAwarded <= 500 &&
+      data.createdAt is timestamp;
+    }
+
+    function isValidWorkshop(data) {
+      return data.keys().hasAll([
+        'issueNumber', 'title', 'summary', 'trackSlug', 'startsAtIso',
+        'academyTimezone', 'prerequisites', 'locationUrl', 'isUpcoming',
+        'resources', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'issueNumber', 'title', 'summary', 'trackSlug', 'startsAtIso',
+        'academyTimezone', 'prerequisites', 'locationUrl', 'isUpcoming',
+        'resources', 'createdAt', 'updatedAt'
+      ]) &&
+      data.issueNumber is string && data.issueNumber.size() >= 1 && data.issueNumber.size() <= 12 &&
+      data.title is string && data.title.size() >= 2 && data.title.size() <= 140 &&
+      data.summary is string && data.summary.size() >= 10 && data.summary.size() <= 2000 &&
+      data.trackSlug is string && data.trackSlug.size() >= 2 && data.trackSlug.size() <= 64 &&
+      data.startsAtIso is string && data.startsAtIso.size() >= 10 && data.startsAtIso.size() <= 40 &&
+      data.academyTimezone is string && data.academyTimezone.size() >= 3 && data.academyTimezone.size() <= 32 &&
+      data.prerequisites is string && data.prerequisites.size() <= 400 &&
+      data.locationUrl is string && data.locationUrl.size() <= 400 &&
+      data.isUpcoming is bool &&
+      data.resources is map &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidWorkshopRsvp(data) {
+      return data.keys().hasAll(['uid', 'nickname', 'rsvpedAt']) &&
+      data.keys().hasOnly(['uid', 'nickname', 'rsvpedAt']) &&
+      isValidId(data.uid) &&
+      data.nickname is string && data.nickname.size() >= 2 && data.nickname.size() <= 40 &&
+      data.rsvpedAt is timestamp;
+    }
+
+    // 4. Collection Rules
+
+    // Connection validation document
+    match /test/connection {
+      allow get: if true;
+      allow write: if false;
+    }
+
+    // Public profiles (PII-free leaderboard & attribution)
+    match /publicProfiles/{uid} {
+      allow get: if isValidId(uid);
+      allow list: if true;
+      allow create: if isVerifiedUser() && isValidId(uid) && isValidPublicProfile(incoming()) &&
+        request.auth.uid == uid &&
+        incoming().uid == uid &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        (
+          (incoming().role == 'learner' &&
+           incoming().xp == 0 &&
+           incoming().weeklyXp == 0 &&
+           incoming().currentStreak == 0 &&
+           incoming().longestStreak == 0 &&
+           incoming().solvedEasy == 0 &&
+           incoming().solvedMedium == 0 &&
+           incoming().solvedHard == 0 &&
+           incoming().completedModulesCount == 0) ||
+          isAdmin()
+        );
+      allow update: if isVerifiedUser() && isValidId(uid) && isValidPublicProfile(incoming()) &&
+        incoming().uid == existing().uid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time && (
+          isAdmin() ||
+          (
+            isOwner(uid) &&
+            incoming().role == existing().role &&
+            incoming().xp >= existing().xp &&
+            incoming().xp <= existing().xp + 500 &&
+            incoming().weeklyXp >= existing().weeklyXp &&
+            incoming().weeklyXp <= existing().weeklyXp + 500 &&
+            incoming().currentStreak >= 0 &&
+            incoming().currentStreak <= existing().currentStreak + 1 &&
+            incoming().longestStreak >= existing().longestStreak &&
+            incoming().longestStreak <= existing().longestStreak + 1 &&
+            incoming().solvedEasy >= existing().solvedEasy &&
+            incoming().solvedEasy <= existing().solvedEasy + 1 &&
+            incoming().solvedMedium >= existing().solvedMedium &&
+            incoming().solvedMedium <= existing().solvedMedium + 1 &&
+            incoming().solvedHard >= existing().solvedHard &&
+            incoming().solvedHard <= existing().solvedHard + 1 &&
+            incoming().completedModulesCount >= existing().completedModulesCount &&
+            incoming().completedModulesCount <= existing().completedModulesCount + 1 &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'nickname', 'avatarInitials', 'githubHandle', 'telegramHandle',
+              'xp', 'weeklyXp', 'currentStreak', 'longestStreak',
+              'solvedEasy', 'solvedMedium', 'solvedHard', 'completedModulesCount',
+              'updatedAt'
+            ])
+          )
+        );
+      allow delete: if isAdmin();
+    }
+
+    // Private user data (PII isolated to owner & admin)
+    match /usersPrivate/{uid} {
+      allow get: if isValidId(uid) && (isOwner(uid) || isAdmin());
+      allow list: if false;
+      allow create: if isVerifiedUser() && isValidId(uid) && isOwner(uid) &&
+        isValidUserPrivate(incoming()) &&
+        incoming().uid == uid &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser() && isValidId(uid) && isOwner(uid) &&
+        isValidUserPrivate(incoming()) &&
+        incoming().uid == existing().uid &&
+        incoming().email == existing().email &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'lastSolvedDate', 'solvedProblemIds', 'completedModuleIds',
+          'thinkPassedProblemIds', 'updatedAt'
+        ]);
+      allow delete: if isAdmin();
+
+      match /submissions/{submissionId} {
+        allow get: if isValidId(uid) && isValidId(submissionId) && (isOwner(uid) || isAdmin());
+        allow list: if isValidId(uid) && (isOwner(uid) || isAdmin());
+        allow create: if isVerifiedUser() && isValidId(uid) && isValidId(submissionId) &&
+          isOwner(uid) && isValidSubmission(incoming()) &&
+          incoming().userUid == request.auth.uid &&
+          incoming().createdAt == request.time &&
+          exists(/databases/$(database)/documents/problems/$(incoming().problemId));
+        allow update, delete: if false;
+      }
+    }
+
+    // Admin directory
+    match /admins/{uid} {
+      allow get: if isValidId(uid) && (isOwner(uid) || isAdmin());
+      allow list: if isAdmin();
+      allow create, update: if isAdmin() && isValidId(uid) && isValidAdminRecord(incoming()) &&
+        incoming().grantedAt == request.time;
+      allow delete: if isAdmin() && isValidId(uid);
+    }
+
+    // Syllabus tracks
+    match /tracks/{trackId} {
+      allow get: if isValidId(trackId);
+      allow list: if true;
+      allow create, update: if isAdmin() && isValidId(trackId) && isValidTrack(incoming()) &&
+        incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(trackId);
+    }
+
+    // Coding problems & Think-Before-You-Run checks
+    match /problems/{problemId} {
+      allow get: if isValidId(problemId);
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(problemId) && isValidProblem(incoming()) &&
+        incoming().createdByUid == request.auth.uid &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(problemId) && isValidProblem(incoming()) &&
+        incoming().createdByUid == existing().createdByUid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(problemId);
+
+      match /discussions/{commentId} {
+        allow get: if isValidId(problemId) && isValidId(commentId);
+        allow list: if true;
+        allow create: if isVerifiedUser() && isValidId(problemId) && isValidId(commentId) &&
+          isValidDiscussion(incoming()) &&
+          exists(/databases/$(database)/documents/problems/$(problemId)) &&
+          incoming().problemId == problemId &&
+          incoming().authorUid == request.auth.uid &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time &&
+          (
+            isAdmin() ||
+            (incoming().authorRole == 'learner' && incoming().isMentorAnswer == false && incoming().isPinned == false)
+          );
+        allow update: if isVerifiedUser() && isValidId(problemId) && isValidId(commentId) &&
+          isValidDiscussion(incoming()) &&
+          incoming().problemId == existing().problemId &&
+          incoming().authorUid == existing().authorUid &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time && (
+            (isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['isMentorAnswer', 'isPinned', 'body', 'updatedAt'])) ||
+            (existing().authorUid == request.auth.uid &&
+              incoming().isMentorAnswer == existing().isMentorAnswer &&
+              incoming().isPinned == existing().isPinned &&
+              incoming().diff(existing()).affectedKeys().hasOnly(['body', 'codeSnippet', 'language', 'updatedAt']))
+          );
+        allow delete: if isVerifiedUser() && isValidId(problemId) && isValidId(commentId) &&
+          (existing().authorUid == request.auth.uid || isAdmin());
+      }
+    }
+
+    // Workshops & RSVPs
+    match /workshops/{workshopId} {
+      allow get: if isValidId(workshopId);
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(workshopId) && isValidWorkshop(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(workshopId) && isValidWorkshop(incoming()) &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(workshopId);
+
+      match /rsvps/{uid} {
+        allow get: if isValidId(workshopId) && isValidId(uid);
+        allow list: if true;
+        allow create: if isVerifiedUser() && isValidId(workshopId) && isValidId(uid) &&
+          isOwner(uid) && isValidWorkshopRsvp(incoming()) &&
+          exists(/databases/$(database)/documents/workshops/$(workshopId)) &&
+          incoming().uid == request.auth.uid &&
+          incoming().rsvpedAt == request.time;
+        allow update: if false;
+        allow delete: if isVerifiedUser() && isValidId(workshopId) && isValidId(uid) &&
+          (isOwner(uid) || isAdmin());
+      }
+    }
+  }
+}
