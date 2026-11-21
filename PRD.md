@@ -1,129 +1,159 @@
-# Product Requirements Document (PRD): THINK//CODE Academy LMS
+# THINK//CODE Product Requirements
 
-**Document Status:** v2.1 (Beta Scope Confirmed & Active Build Log)  
-**Target Platform:** Web Application (Desktop-first for coding sandbox, mobile-responsive for reading & daily challenges)  
-**Design System:** Serious, clutter-free Coding Academy aesthetic (`DESIGN.md` — dark-only workstation, restrained lime accents, and `2+1` typography)  
-**Core Motto:** *Think. Code. Repeat.*
+**Status:** Pre-launch learning hub; community is active on Telegram  
+**Product owner:** THINK//CODE Academy  
+**Last aligned with:** Product-owner answers and repository inspection  
+**Related guidance:** `AGENTS.md`, `DESIGN.md`
 
----
+> This document distinguishes product direction from current implementation. “In the repository” does not mean deployed or verified in production. Confirm current behavior in code before changing a status.
 
-## 1. Executive Summary & Vision
+## 1. Product and purpose
 
-**THINK//CODE** is a coding community and academy dedicated to teaching algorithmic thinking, problem-solving, logic, and competitive programming. Following lessons learned from our initial prototype (`think-code-learn.vercel.app`), this new platform is built from the ground up as a **serious, focused coding academy**—free of ads, visual clutter, and AI shortcuts.
+THINK//CODE helps beginners and early-career developers build real algorithmic problem-solving skill through curated lessons, coding practice, trace questions, and support from human mentors. It is a welcoming starting point for people who want stronger coding fundamentals and better preparation for technical interviews. The platform complements later practice on services such as LeetCode and Codeforces; it is not intended to replace every external resource.
 
-The **THINK//CODE LMS** combines a structured academic syllabus with LeetCode-style hands-on coding challenges, **"Think Before You Run"** output-prediction checks, and live Sunday workshop hubs. Instead of relying on AI hints, learners get direct feedback and mentorship from **real, experienced coders** in our community.
+The community already meets and shares daily coding quizzes through Telegram. The LMS is intended to become the main home for its lessons, challenges, workshop information and materials, progress, and member feedback.
 
----
+**Learning principle:** think first, then run code. Encourage deliberate practice, useful hints, and human-to-human learning. The product is not anti-AI: a guided tutor may be considered later, but it must help learners reason rather than write or reveal the answer for them.
 
-## 2. Target Audience (User Personas)
+## 2. Audience and language
 
-1. **The Dedicated Learner (Student / Self-Taught):** Wants a clear, structured syllabus to master algorithmic thinking and language fundamentals (Python, JS, C++) through daily practice.
-2. **The Aspiring Competitive Programmer:** Wants a distraction-free, ad-free LeetCode-style environment to write, test, and optimize code against real test cases, backed by live workshop discussions.
-3. **The Mentor / Founder (Admin):** Experienced coders who run weekly workshops, review member solutions, answer questions directly, and curate new problems and sessions via the Beta Admin Composer.
+- Primary audience: beginner and early-career coders, generally age 14+, including people building skills for a future technology job or interview.
+- Mentors and community admins curate learning materials and help members.
+- The community communicates in English and Russian. The current interface is English-only; a bilingual English/Russian UI is a product goal, not an implemented feature.
+- Sign-up is open to learners. Google and GitHub are the intended sign-in providers.
 
----
+## 3. Product principles and boundaries
 
-## 3. Core Philosophy & Guardrails
+- **Skill over shortcuts:** teach concepts and problem-solving; do not make one-shot code generation the learning loop.
+- **People matter:** retain per-problem mentor Q&A and link learners to the Telegram and Discord communities. Do not build a general-purpose in-app chat.
+- **Warm, capable, and welcoming:** communicate like a technically confident peer, not a school, a corporate course center, or an anti-AI campaign.
+- **Curated before expansive:** improve the quality and usefulness of lessons and problems before growing the feature set. Use member feedback to guide expansion.
+- **Desktop first:** the coding workspace is the priority. Keep existing responsive behavior, but mobile optimization is not the current focus.
+- **No ads.**
+- **AI tutor is a future possibility:** do not implement an assistant, code generator, or answer-giving behavior until the owner approves a clear tutor brief and learning rules.
 
-* **Serious Academy, Not a Toy:** Clean, authoritative, high-focus UI (`DESIGN.md`). Gamification exists to drive discipline (streaks, syllabus progression, leaderboard consistency), not childish distractions.
-* **Zero AI in Beta:** No AI chatbots, AI code generators, or automated AI hints. When members get stuck, they ask real experienced coders via integrated discussion threads or our Discord/Telegram channels.
-* **Zero Ads:** 100% clean learning environment focused purely on engineering and problem-solving.
-* **Dual-Purpose Core Loop:** Seamlessly connects asynchronous **daily syllabus challenges** with synchronous **Sunday live workshops**.
+## 4. Core learner journey
 
----
+1. Sign in and choose a lesson or challenge.
+2. Read a concise explanation that makes the concept interesting; work through a “Think Before You Run” trace when available.
+3. Solve the coding problem and review the test result and editorial.
+4. Ask a focused question in the problem's mentor Q&A, or continue the conversation with the community through Telegram or Discord.
+5. Follow progress and find the next workshop, its agenda and join link, or materials from a past session.
+6. Share feedback on the platform or community so future improvements reflect member needs.
 
-## 4. Functional Requirements
+## 5. Current implementation
 
-### 4.1. Authentication & User Profiles
-* **One-Click OAuth Login:** Firebase Authentication supporting **Google** and **GitHub** sign-in (with Telegram and GitHub handle linking on member profiles).
-* **Academic Profile:**
-  * Editable readable nickname (consistent with Discord/Telegram).
-  * Syllabus completion progress bar & current module.
-  * Daily challenge streak counter, longest streak, XP total, and solved problem breakdown (Easy / Medium / Hard).
-  * Submission history log and links to GitHub and Telegram handles.
+The following describes the checked repository, not a production deployment claim. The owner reports that the current app works locally; authentication has been exercised on localhost.
 
-### 4.2. Structured Academic Syllabus, Think-Before-You-Run & Daily Challenges
-* **Curated Syllabus Tracks:** Organized modules covering core engineering tracks (*Algorithmic Thinking*, *Python Internals & Memory*, *JavaScript Under the Hood*, *Competitive Programming Basics*) with theory lessons and linked coding problems.
-* **Combined Academic Daily Challenges:**
-  * Each challenge pairs a **"Think Before You Run"** output-prediction / trace check with a full multi-language coding task.
-  * Answering the mental-trace check reveals an engineering explanation before or alongside code implementation.
-* **Gamification & Public Leaderboard:**
-  * **Daily Streaks:** Tracks consecutive days of solving challenges.
-  * **XP & Academy Ranks:** Earned by completing syllabus modules, passing Think-Before-You-Run checks, and solving daily/track problems.
-  * **Public Leaderboard:** Weekly and all-time rankings with tabular numerals (`tabular-nums`), streak counts, solved totals, and rank tiers.
+| Area | Present in the repository |
+|---|---|
+| App shell and access | Next.js app with a public landing page and signed-in workspace; Firebase Google/GitHub sign-in; desktop sidebar and compact responsive navigation. |
+| Syllabus | Four seeded tracks—Algorithmic Thinking, Python Internals & Memory, JavaScript Under the Hood, and Competitive Programming Basics—with three modules per track. Modules already contain Markdown theory and link to problems; editorial quality and richer context still need work. |
+| Challenges | Twelve seeded coding problems with difficulty, examples, test cases, XP values, daily designation, and Think-Before-You-Run prompts. |
+| Coding workspace | Monaco editor; Python, JavaScript, and C++; problem description, trace check, editorial, per-problem mentor Q&A, and execution results. Python and JavaScript have browser-worker fallbacks; C++ requires a configured Piston endpoint. |
+| Progress | Module completion, trace-passed and solved state, XP, streaks, submission history, and weekly/all-time leaderboard views. |
+| Member profile | Editable nickname, optional GitHub/Telegram handles, progress and solved counts. This is not yet the single-username, stack, tags, badges, and public profile experience described below. |
+| Workshops | Upcoming workshop information, RSVP/cancel RSVP, external session link, and an archive UI for past workshop resources. Current seed data contains one upcoming workshop; replay video, agenda, and member topic voting are not represented in the current data model. |
+| Admin content tools | Passcode-based admin elevation and a composer for problems and workshops. Manual XP and badge awards are not implemented. |
+| Visual system | Dark-only charcoal UI with lime, cyan, and amber semantic accents. Current code loads Inter and JetBrains Mono. Some existing views still use illustrations outside the desired locations; see `DESIGN.md`. |
 
-### 4.3. LeetCode-Style Coding Sandbox (No AI, Human Mentorship)
-* **Resizable Split-Screen Workspace:**
-  * **Left Panel:** Problem description, input/output formats, constraints, examples, **Think Before You Run** check, official editorial tab, and **"Mentor Discussion"** tab.
-  * **Right Panel:** Clean Monaco Editor supporting Python, JavaScript, and C++ with per-problem draft preservation.
-* **Dual-Mode Code Execution Engine:**
-  * **External Piston API (`PISTON_API_URL`)** via server-side `/api/execute` proxy when configured (enabling Python, JavaScript, and C++).
-  * **Automatic Local Sandbox Fallback:** Isolated browser Web Worker execution for JavaScript and Pyodide WebAssembly (`CPython`) for Python—delivering real test-case evaluation with strict timeout guards and zero server shell exposure even without an external Piston key.
-  * Displays execution status (`Accepted`, `Wrong Answer`, `Time Limit Exceeded`, `Runtime Error`), runtime (ms), and per-test diff output.
-* **Human Mentorship & Discussion:**
-  * Direct per-problem Q&A threads where founders and experienced members review code, pin mentor-verified explanations, and guide learners (zero AI).
+### Known implementation gaps
 
-### 4.4. Workshop Hub (Live Sessions & Archive)
-* **Upcoming Workshop Banner:** Displays the next Sunday Discord workshop topic, time in both the member's local timezone and academy `UTC+5`, prerequisites, meeting link, and persistent one-click **RSVP** / **Cancel RSVP**.
-* **Workshop Archive:** Centralized repository for all past workshops—filterable by track and containing problem sets, reference code, presentation slides, and Google Colab/Jupyter notebooks.
+- Enrich and quality-check lesson material with clear explanations and engaging context such as useful facts or history.
+- Add persistent Telegram and Discord community links, including a Telegram destination in the sidebar.
+- Expand workshop records and UI with agenda, replay/video, complete supporting materials, and member feedback on upcoming topics.
+- Add the owner-provided Airtable feedback form for LMS and community feedback.
+- Implement the revised member identity/profile and badge/reward direction in section 7.
+- Add English/Russian localization.
+- Replace illustrations outside the landing page and workshop card as described in `DESIGN.md`.
+- Review the current landing copy so its message encourages active thinking without framing the product as rejecting AI altogether.
 
-### 4.5. Beta Admin Composer & Content Pipeline
-* **Seeded Starter Curriculum:** Initial syllabus tracks, problems (with Think-Before-You-Run checks and sample/hidden test cases), and workshops automatically populate on first run.
-* **Lightweight Beta Admin Composer:** Role-gated workspace (accessible to verified Admins/Mentors) to create and edit coding problems (title, difficulty, track, description, starter code, Think-Before-You-Run quiz, sample & hidden test cases) and publish/manage workshops directly in the database.
+## 6. Core product requirements
 
----
+### 6.1 Lessons and problem practice
 
-## 5. Non-Functional Requirements
+- Organize learning into curated tracks and modules, initially covering algorithmic thinking, Python, JavaScript, and competitive-programming basics.
+- Modules should explain the idea in an approachable, technically correct way. Add useful examples, facts, or history where they genuinely aid learning; avoid filler.
+- Link lessons to coding problems. Support difficulty levels, examples, constraints, test cases, editorials, and a daily challenge.
+- Keep “Think Before You Run” as a reasoning exercise. Explain the answer; do not turn it into a gotcha quiz.
+- Python and JavaScript are the initial required coding languages. C++ is currently present in the code and may be offered when the execution service is configured. Future language choices—including TypeScript, C, or others—will be decided with member input.
 
-* **Strict Adherence to `DESIGN.md`:** Every component, dark-only CSS variable token, `2+1` typography pairing (`Plus Jakarta Sans`, `DM Sans`, `JetBrains Mono`), and zero-pill metadata rule follows `DESIGN.md`.
-* **Performance:** Instant navigation and fast code execution feedback (< 3s turnaround for sandbox runs).
-* **Security:** Verified Firebase Auth identity, hardened Firestore security rules (`firestore.rules`) validated via ESLint security plugin, parameterized queries/strict schema blueprints, server-side Piston proxy keeping secrets out of client bundles, and zero shell execution of user code.
-* **Responsiveness:** Desktop-optimized resizable split-screen code editor; clean mobile tabbed workspace (`Problem`, `Editor`, `Tests`) with `>= 44px` touch targets.
+### 6.2 Coding workspace
 
----
+- Provide a focused problem-and-editor workspace with visible run/submit outcomes and test feedback.
+- Preserve the current distinction between Python/JavaScript browser-worker fallback and C++'s configured Piston requirement; do not imply all languages work in every deployment.
+- Keep problem statements, examples, constraints, trace explanations, and editorials clear and complete.
+- Keep the existing per-problem mentor Q&A. It is a focused question-and-answer feature, not a general community chat or replacement for Telegram/Discord.
 
-## 6. Tech Stack (Beta Architecture)
+### 6.3 Workshops and community
 
-* **Frontend:** Next.js 15 (App Router) + TypeScript + Tailwind CSS v4 (dark-only semantic tokens) + `motion/react`.
-* **Code Editor:** `@monaco-editor/react` (dark workstation theme).
-* **Auth & Persistence:** Firebase Authentication (Google & GitHub providers) + Cloud Firestore (with hardened `firestore.rules` and `firebase-blueprint.json`).
-* **Sandboxed Code Execution:** Server-side Piston v2 API proxy (`PISTON_API_URL`) with automatic isolated Web Worker fallback for JavaScript and Pyodide WASM for Python.
+- Show each upcoming workshop's date, time, topic, agenda, and join link.
+- Workshops are usually on Sunday around 19:00 in Uzbekistan time (UTC+5), but the community may choose another time through a Telegram poll. Use the actual time for each event rather than assuming a fixed weekly schedule.
+- Keep past sessions available with replay/video and related slides, code, notebooks, and problem materials where provided.
+- Let members express whether an upcoming topic works for them. If a member dislikes it, require a suggested topic before submitting that response. Exact voting/editing rules can be decided during implementation.
+- Provide clear links to the Telegram and Discord communities. No general-purpose in-app chat is in scope.
+- Add the owner-provided Airtable form for feedback about the LMS and community. The form URL must come from the owner; do not invent one.
 
----
+### 6.4 Accounts, profiles, and rankings
 
-## 7. Phased Roadmap
+- Support Google and GitHub sign-in.
+- Use one platform username as the member's identity; do not treat separate platform handles as competing usernames.
+- Let members add their technology stack and profile tags. External GitHub/Telegram links may be optional contact links, not alternate identity labels.
+- Keep XP, streaks, solved totals by difficulty, and weekly/all-time rankings.
+- Selecting a leaderboard member should open a profile view/modal with username, stack, tags, XP, badges, solved counts by difficulty, and completed tracks.
+- Public member information should be limited to the intended profile and ranking details. Never expose account email as public profile information.
+- Keep open learner sign-up; admin publishing actions must remain admin-only.
 
-### Phase 1: Beta Launch (Core Academy, Sandbox & Admin Composer)
-* Dark-only workstation UI strictly following `DESIGN.md`.
-* Firebase Authentication (Google & GitHub) + Academic Profile with GitHub/Telegram handles.
-* LeetCode-style Code Sandbox (Python, JS, C++) with sample & hidden test cases + Think-Before-You-Run quizzes.
-* Structured Syllabus Tracks + Daily Academic Challenge + Streak, XP & Public Leaderboard.
-* Workshop Hub (upcoming session timezone-aware RSVP + archive of slides/notebooks/repos).
-* Mentor Discussion Tab on every problem (zero AI).
-* Lightweight Beta Admin Problem & Workshop Composer.
+### 6.5 XP, badges, referrals, and competitions
 
-### Phase 2: Community Expansion
-* Official Video Walkthroughs unlocked after solving a problem.
-* Member Project Showcase (featuring community-built tools like *FFClass* and *Pyxel* projects).
-* Telegram Bot sync (notifying members of daily challenges and streak reminders).
+- Continue rewarding learning progress and recognize meaningful community participation, including workshop attendance.
+- Let admins award XP and badges to individual members from an admin surface.
+- Badge concepts include strong problem-solving contribution, workshop participation, and referring a member who joins the community. Award criteria and whether any badges are automatic remain to be designed.
+- Add member competitions with digital prizes as a later community feature. Competition format, schedule, scoring, and prize rules require a separate product decision.
+- Referral links and referral attribution are not currently implemented.
 
----
+### 6.6 AI and help
 
-## 8. Build Progress & Changelog
+- There is no AI assistant in the current implementation.
+- Keep deliberate practice, hints, human mentors, and community discussion central.
+- A future AI tutor may guide reasoning in a Socratic manner and avoid directly supplying complete code or answers. Its behavior, boundaries, and privacy implications require an explicit owner-approved brief before implementation.
 
-- **[Completed] Planning & Architecture Alignment:** Reviewed `PRD_c3f775e9.md` and `DESIGN_e77d04d9.md`, incorporated Phase 1 product & UI decisions, and finalized the dual-theme workstation + hybrid sandbox architecture.
-- **[Completed] Firebase Project Provisioning:** Provisioned Firebase project and Firestore database instance (`firebase-applet-config.json` active).
-- **[Completed] Package Installation & Spec Refinement:** Installed `firebase`, `@monaco-editor/react`, `react-markdown`, and `@firebase/eslint-plugin-security-rules`; updated `DESIGN.md` and `PRD.md` to v2.1.
-- **[Completed] Security Blueprint & Firestore Rules:** Defined `firebase-blueprint.json` and `security_spec.md`, validated hardened `firestore.rules` with ESLint security plugin (0 errors), and deployed rules to Firestore.
-- **[Completed] Dual-Theme Design System & Shell:** Implemented Tailwind v4 `@custom-variant dark` tokens, `Plus Jakarta Sans` / `DM Sans` / `JetBrains Mono` typography, slim desktop sidebar, 3-zone top bar, mobile navigation, and Light/Dark theme toggle.
-- **[Completed] Curriculum Seed, Sandbox & Workers:** Built 4 syllabus tracks, 6 coding challenges with Think-Before-You-Run trace checks, `/api/execute` Piston v2 proxy, isolated JS & Pyodide WebAssembly Web Workers, and resizable Monaco split-screen workspace.
-- **[Completed] Workshops, Leaderboard, Mentor Discussions & Admin Composer:** Implemented timezone-aware Sunday Workshop Hub with persistent RSVPs, Weekly/All-Time XP Leaderboard, per-problem Human Mentor Discussion threads, Academic Profile with handle linking, and role-gated Beta Admin Composer.
-- **[Completed] Build & Lint Verification:** Refactored client state hooks for React 19 compliance, validated zero ESLint issues across source and Firestore security rules, and verified production Next.js compilation.
-- **[Completed] Hydration Mismatch Fix:** Added `useIsClient` via `useSyncExternalStore` to format workshop timestamps deterministically in UTC during SSR/initial hydration before switching to the learner's browser timezone.
-- **[Completed] Collapsible Navigation Sidebar:** Added a persistent collapse/expand side panel toggle in `AppShell` with an icon-only rail mode and hover/focus tooltips showing each page name.
-- **[Completed] Official Brand Header Logo:** Replaced the top header slash and breadcrumb text with the official `THINK//CODE` SVG logo asset alongside the wordmark.
-- **[Completed] Public Community Landing Page & Auth Gate:** Built a dedicated landing page for unsigned visitors communicating THINK//CODE's competitive programming and anti-AI-slop mission; signed-in members enter the LMS directly and only return to the landing page upon signing out.
-- **[Completed] Secret Passcode Admin Elevation:** Restricted automatic admin privileges across all members; added a click-to-reveal admin passcode input on the Profile page verified server-side against `ADMIN_PASSCODE` with an HMAC-signed `HttpOnly` session cookie before unlocking the Compose workspace.
-- **[Completed] Visual-First Apple-Minimal Redesign:** Replaced verbose marketing and LMS prose with 4 bespoke studio photography visuals, SVG progress rings, proportional difficulty/track completion bars, a Top 3 XP podium bar comparison, and a live interactive Trace Check demo on the landing page—while keeping coding challenge specifications, constraints, examples, and editorials in the Sandbox crystal clear.
-- **[Completed] Curriculum Expansion & Production Cleanup:** Placed the sidebar collapse toggle at the bottom of the sticky desktop rail, expanded every track to 3 balanced Easy/Medium/Hard problems (12 total challenges & 12 modules across 4 tracks), removed all test/seed users from the leaderboard, and removed past workshops so only live upcoming sessions remain.
-- **[Completed] Dark-Only Visual Refresh & Public Asset Cleanup:** Removed the light theme, the appearance toggle, and the dual-theme token layer so the academy ships dark-only; moved all illustrations to `public/images/` with standard kebab-case names and replaced the retired studio photography across Landing, Overview, Syllabus, and Workshops.
+## 7. Roadmap and status
+
+### Owner-stated near-term priorities
+
+- Improve and review the existing lesson/problem content.
+- Add Telegram and Discord entry points.
+- Make workshop listings useful before and after each session, including agenda, join details, replays, and materials.
+- Add the Airtable feedback path.
+- Collect member feedback before committing to a broad feature expansion.
+
+### Later product directions
+
+- English/Russian UI.
+- Single-username profiles with stack, tags, badges, and a leaderboard profile view.
+- Admin-issued XP and badges, with criteria for contribution and referrals.
+- Member competitions with digital prizes.
+- A carefully designed guided AI tutor, only after product definition and approval.
+- Additional programming languages selected with member input.
+
+This is a direction, not a promise of sequencing or delivery dates. Update it when the owner changes priorities.
+
+## 8. Technical context
+
+- Frontend: Next.js App Router, React, TypeScript, Tailwind CSS, and Motion.
+- Identity and data: Firebase Authentication and Cloud Firestore.
+- Editor: Monaco.
+- Code execution: server-side Piston proxy when configured; isolated browser workers for Python and JavaScript fallback.
+- Do not copy secrets into docs or client code. Do not claim a deployment, security audit, or production capability based only on repository configuration.
+
+## 9. Open decisions to resolve when relevant
+
+- Default language and language-switching behavior for the English/Russian UI.
+- Exact Telegram/Discord destinations and Airtable feedback URL.
+- Workshop agenda/replay data format and the rules for changing a vote.
+- Profile tag limits and badge award criteria.
+- Competition format and prize rules.
+- Tutor behavior, boundaries, and data handling.
+- Final content priorities and which future languages members choose.
+- How to measure learner confidence, skill growth, and whether the LMS is becoming the community's main learning hub.
