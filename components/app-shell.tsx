@@ -225,7 +225,7 @@ export function AppShell({
           >
             {!sidebarCollapsed && (
               <p className="text-xs font-medium text-[var(--text-secondary)] truncate">
-                Zero AI · Human Mentors
+                Think. Code. Repeat.
               </p>
             )}
             <button

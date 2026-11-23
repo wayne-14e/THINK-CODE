@@ -464,7 +464,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
         {leftTab === 'editorial' && (
           <div className="space-y-4">
             <p className="text-xs font-mono text-[var(--text-tertiary)]">
-              Official Academy Editorial · Zero AI
+              Official Academy Editorial
             </p>
             <div className="prose prose-sm prose-invert max-w-none text-[var(--text-secondary)] prose-headings:text-[var(--text-primary)] prose-code:text-[var(--accent-cyan)]">
               <Markdown>{problem.editorial}</Markdown>

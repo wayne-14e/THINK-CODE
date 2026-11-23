@@ -65,7 +65,7 @@ export function LandingView() {
               href="#craft"
               className="hover:text-[var(--text-primary)] transition-colors whitespace-nowrap shrink-0"
             >
-              Craft
+              Practice
             </a>
             <a
               href="#tracks"
@@ -85,7 +85,7 @@ export function LandingView() {
             <button
               type="button"
               onClick={() => setAuthModalOpen(true)}
-              className="min-h-[40px] px-4 py-2 rounded-lg text-sm font-mono font-semibold tracking-tight bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 transition-colors whitespace-nowrap shrink-0"
+              className="min-h-[40px] px-4 py-2 rounded-lg text-sm font-semibold tracking-tight bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 transition-colors whitespace-nowrap shrink-0"
             >
               Sign in
             </button>
@@ -104,28 +104,29 @@ export function LandingView() {
           >
             <div className="max-w-3xl mx-auto text-center space-y-5">
               <p className="text-xs font-mono text-[var(--brand-primary)]">
-                Competitive Programming <span aria-hidden="true">·</span> Zero AI Slop
+                Competitive Programming <span aria-hidden="true">·</span> Human Mentors
               </p>
 
               <h1
                 className="font-bold tracking-tight text-[var(--text-primary)] leading-[1.06]"
                 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)' }}
               >
-                Kill <span className="accent-spectrum">AI slop.</span>{' '}
-                Keep real coding alive.
+                Think first.{' '}
+                <span className="text-[var(--brand-primary)]">Code deeper.</span>
               </h1>
 
               <p className="text-base sm:text-lg text-[var(--text-secondary)] max-w-xl mx-auto">
-                No prompting Claude or Codex. Pure algorithmic training from scratch.
+                Build algorithmic confidence through deliberate practice, real mentors, and a
+                community that codes together.
               </p>
 
               <div className="pt-2">
                 <button
                   type="button"
                   onClick={() => setAuthModalOpen(true)}
-                  className="min-h-[46px] inline-flex items-center gap-2 px-7 py-3 rounded-lg text-sm font-mono font-semibold tracking-tight bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 transition-colors whitespace-nowrap"
+                  className="min-h-[46px] inline-flex items-center gap-2 px-7 py-3 rounded-lg text-sm font-semibold tracking-tight bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 transition-colors whitespace-nowrap"
                 >
-                  <span>Enter Academy</span>
+                  <span>Start practicing</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -168,7 +169,7 @@ export function LandingView() {
                   Think before you run.
                 </h2>
                 <p className="text-sm text-[var(--text-secondary)]">
-                  Trace invariants first. Prompt nothing.
+                  Work through the state before you touch the keyboard.
                 </p>
               </div>
             </div>
@@ -219,7 +220,7 @@ export function LandingView() {
                       type="button"
                       disabled={demoSelected === null}
                       onClick={() => setDemoChecked(true)}
-                      className="min-h-[40px] px-4 py-2 rounded-lg text-xs font-mono font-semibold tracking-tight bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] disabled:opacity-40 transition-colors whitespace-nowrap"
+                      className="min-h-[40px] px-4 py-2 rounded-lg text-xs font-semibold tracking-tight bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] disabled:opacity-40 transition-colors whitespace-nowrap"
                     >
                       Verify trace
                     </button>
@@ -235,12 +236,12 @@ export function LandingView() {
                         {demoIsCorrect ? (
                           <>
                             <CheckCircle2 className="w-4 h-4" />
-                            <span>Exact match</span>
+                            <span>Trace verified</span>
                           </>
                         ) : (
                           <>
                             <XCircle className="w-4 h-4" />
-                            <span>Try again</span>
+                            <span>Trace it line by line</span>
                           </>
                         )}
                       </span>
@@ -308,14 +309,14 @@ export function LandingView() {
           </div>
         </section>
 
-        {/* Section 4: Sunday Workshop Visual Showcase */}
+        {/* Section 4: Live Workshop Visual Showcase */}
         <section id="workshops" className="px-4 sm:px-6 lg:px-10 pt-6 pb-20">
           <div className="mx-auto max-w-[1280px]">
             <div className="ambient-card ambient-card--cyan rounded-2xl overflow-hidden border border-[var(--surface-border)] bg-[var(--surface-raised)] grid grid-cols-1 lg:grid-cols-12 items-stretch">
               <div className="lg:col-span-5 relative min-h-[240px]">
                 <Image
                   src="/images/illustration-hero.png"
-                  alt="Code editor illustration representing a live Sunday workshop"
+                  alt="Code editor illustration representing a live workshop"
                   fill
                   sizes="(max-width: 1024px) 100vw, 40vw"
                   className="object-contain p-6 sm:p-8"
@@ -327,21 +328,21 @@ export function LandingView() {
                   <p className="inline-flex items-center gap-2 text-xs font-mono text-[var(--accent-cyan)]">
                     <Calendar className="w-3.5 h-3.5" />
                     <span>
-                      Sunday Workshop · {upcomingWorkshop?.issueNumber} · {workshopDateLabel}
+                      Live Workshop · {upcomingWorkshop?.issueNumber} · {workshopDateLabel}
                     </span>
                   </p>
                   <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
                     {upcomingWorkshop?.title || 'Live Problem Breakdown'}
                   </h2>
                   <p className="text-sm text-[var(--text-secondary)]">
-                    Live problem breakdowns, real mentors, and no AI shortcuts.
+                    Live problem breakdowns, real mentors, and room for your questions.
                   </p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setAuthModalOpen(true)}
-                  className="min-h-[44px] inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-mono font-semibold tracking-tight bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] transition-colors whitespace-nowrap shrink-0 self-start"
+                  className="min-h-[44px] inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold tracking-tight bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] transition-colors whitespace-nowrap shrink-0 self-start"
                 >
                   <span>Join with Google or GitHub</span>
                   <ArrowRight className="w-4 h-4" />

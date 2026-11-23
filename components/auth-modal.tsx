@@ -54,7 +54,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
                   id="auth-modal-title"
                   className="mt-1 text-xl font-bold text-[var(--text-primary)]"
                 >
-                  Sign in to your workstation
+                  Sign in to THINK//CODE
                 </h2>
               </div>
               <button
@@ -71,7 +71,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
             </div>
 
             <p className="mt-2 text-xs text-[var(--text-tertiary)]">
-              Competitive programming · Zero AI
+              Deliberate practice · Human mentors
             </p>
 
             {authError && (
@@ -105,7 +105,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
             </div>
 
             <p className="mt-4 text-xs text-[var(--text-tertiary)]">
-              You can link your Telegram and GitHub community handles from your Profile tab after signing in.
+              You can add optional GitHub and Telegram contact handles from your Profile tab after signing in.
             </p>
           </motion.div>
         </div>
