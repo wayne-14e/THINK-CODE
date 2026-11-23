@@ -47,13 +47,13 @@ Keep the current dark-only semantic palette unless the product owner approves a 
 
 - Use the existing CSS variables rather than introducing component-specific hex values.
 - Give each accent a clear role in a view. Pair status colors with text or an icon; do not rely on color alone.
-- Prefer solid-color buttons and legible surfaces. No gradient buttons or gradient text. Remove the gradient treatment from the landing headline; if a background glow remains, keep it subtle and non-interactive.
+- Prefer solid-color buttons and legible surfaces. No gradient buttons or gradient text. The landing headline uses solid text with lime emphasis; if a background glow remains, keep it subtle and non-interactive.
 - Use borders and spacing before shadows. Reserve stronger elevation for overlays and dialogs.
 - Keep static metadata quiet and usually inline rather than decorating every date, count, or category as a capsule. Member tags may use a compact treatment when needed.
 
 ## 3. Typography and copy
 
-The current code uses **Inter** for interface/body text and **JetBrains Mono** for code and the display/technical font token. Keep to those existing families; do not reintroduce the old three-font “2+1” specification without approval.
+Interface text and headings use **Inter**. **JetBrains Mono** is reserved for code, tabular metrics, and short technical labels. Keep to those existing families; do not reintroduce the old three-font “2+1” specification without approval.
 
 - Use comfortable, readable body text and clear hierarchy.
 - Keep title letter spacing compact or slightly tight. Avoid widely tracked headings and decorative all-caps.
@@ -67,7 +67,7 @@ The current code uses **Inter** for interface/body text and **JetBrains Mono** f
 
 Use simple Lucide icons or small text/code symbols to bring in the pixel-and-byte character. Examples include `</>`, `{}`, `$_`, `//`, and `0x`. Use these as brief visual accents—not as fake terminal content or substitutes for labels.
 
-**Illustrations are limited to the public landing page and a workshop card.** The owner plans to provide replacement artwork for those locations. Do not create or add new illustrations. For other screens—including Overview and Syllabus—remove illustration use and prefer a simple icon, typographic symbol, or clean space.
+**Illustrations are limited to the public landing page and a workshop card.** The current implementation keeps them on the landing page and the upcoming workshop card. The owner plans to provide replacement artwork for those locations. Do not create or add new illustrations. For other screens—including Overview and Syllabus—use a simple icon, typographic symbol, or clean space.
 
 Keep existing artwork in the allowed locations only until owner-provided replacements are available. The brand logo is not treated as an illustration.
 
@@ -77,7 +77,7 @@ Keep existing artwork in the allowed locations only until owner-provided replace
 - Keep navigation familiar and make the active area easy to identify. Use the existing shell rather than inventing a new navigation metaphor.
 - Give each screen a clear primary action. Keep problem statements, examples, trace prompts, editorials, and execution outcomes easy to scan.
 - Keep the coding workspace focused on the problem, editor, and test feedback. Preserve useful language and draft state where the existing implementation supports it.
-- Keep workshops event-centered: date/time, topic, agenda, join action, and past-session materials should be easy to find.
+- Keep workshops event-centered: date/time, topic, agenda, join action, and past-session materials should be easy to find. Show the academy date and time first, then the viewer's local time, and label both.
 - Keep per-problem mentor Q&A focused on a specific problem. It is not a general in-app chat or social feed; make Telegram and Discord community links easy to find.
 - Use small, purposeful transitions. Glitch or flash motion should be rare and brief, never required to understand an action.
 - Do not add custom keyboard shortcuts unless requested. Preserve normal keyboard operation and visible focus for standard controls.

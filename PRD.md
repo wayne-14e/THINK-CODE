@@ -52,10 +52,10 @@ The following describes the checked repository, not a production deployment clai
 | Challenges | Twelve seeded coding problems with difficulty, examples, test cases, XP values, daily designation, and Think-Before-You-Run prompts. |
 | Coding workspace | Monaco editor; Python, JavaScript, and C++; problem description, trace check, editorial, per-problem mentor Q&A, and execution results. Python and JavaScript have browser-worker fallbacks; C++ requires a configured Piston endpoint. |
 | Progress | Module completion, trace-passed and solved state, XP, streaks, submission history, and weekly/all-time leaderboard views. |
-| Member profile | Editable nickname, optional GitHub/Telegram handles, progress and solved counts. This is not yet the single-username, stack, tags, badges, and public profile experience described below. |
+| Member profile | Editable display name, optional GitHub/Telegram contact handles, progress and solved counts. This is not yet the single-username, stack, tags, badges, and public profile experience described below. |
 | Workshops | Upcoming workshop information, RSVP/cancel RSVP, external session link, and an archive UI for past workshop resources. Current seed data contains one upcoming workshop; replay video, agenda, and member topic voting are not represented in the current data model. |
 | Admin content tools | Passcode-based admin elevation and a composer for problems and workshops. Manual XP and badge awards are not implemented. |
-| Visual system | Dark-only charcoal UI with lime, cyan, and amber semantic accents. Current code loads Inter and JetBrains Mono. Some existing views still use illustrations outside the desired locations; see `DESIGN.md`. |
+| Visual system | Dark-only charcoal UI with lime, cyan, and amber semantic accents. Inter is used for interface text and headings; JetBrains Mono is reserved for code, metrics, and short technical labels. Illustrations remain only on the landing page and the upcoming workshop card; see `DESIGN.md`. |
 
 ### Known implementation gaps
 
@@ -65,8 +65,6 @@ The following describes the checked repository, not a production deployment clai
 - Add the owner-provided Airtable feedback form for LMS and community feedback.
 - Implement the revised member identity/profile and badge/reward direction in section 7.
 - Add English/Russian localization.
-- Replace illustrations outside the landing page and workshop card as described in `DESIGN.md`.
-- Review the current landing copy so its message encourages active thinking without framing the product as rejecting AI altogether.
 
 ## 6. Core product requirements
 
