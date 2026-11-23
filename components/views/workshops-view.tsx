@@ -30,6 +30,47 @@ function formatLocalDateTime(iso: string, isClient: boolean): string {
   }).format(date);
 }
 
+function parseUtcOffsetMinutes(label: string): number {
+  const match = label.match(/UTC\s*([+-])\s*(\d{1,2})(?::?(\d{2}))?/i);
+  if (!match) return 0;
+  const sign = match[1] === '-' ? -1 : 1;
+  return sign * (Number(match[2]) * 60 + Number(match[3] ?? 0));
+}
+
+function formatAcademyDate(iso: string, academyTimezone: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  const shifted = new Date(date.getTime() + parseUtcOffsetMinutes(academyTimezone) * 60_000);
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(shifted);
+}
+
+function ResourceLink({
+  href,
+  icon: Icon,
+  label,
+}: {
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="min-h-[34px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--surface-border)] bg-[var(--surface-overlay)] text-[var(--text-primary)] hover:border-[var(--text-tertiary)] whitespace-nowrap"
+    >
+      <Icon className="w-3.5 h-3.5" />
+      <span>{label}</span>
+    </a>
+  );
+}
+
 export function WorkshopsView() {
   const {
     workshops,
@@ -88,7 +129,9 @@ export function WorkshopsView() {
     >
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">Workshops</h1>
-        <span className="font-mono text-xs text-[var(--text-tertiary)]">Live Sunday Sessions</span>
+        <span className="font-mono text-xs text-[var(--text-tertiary)]">
+          Live problem breakdowns
+        </span>
       </div>
 
       {/* Upcoming Workshop Visual Showcase */}
@@ -97,7 +140,7 @@ export function WorkshopsView() {
           <div className="lg:col-span-5 relative min-h-[220px] border-b lg:border-b-0 lg:border-r border-[var(--surface-border)]">
             <Image
               src="/images/illustration-hero.png"
-              alt="Code editor illustration representing a live Sunday workshop"
+              alt="Code editor illustration representing a live workshop"
               fill
               sizes="(max-width: 1024px) 100vw, 40vw"
               className="object-contain p-6"
@@ -114,14 +157,25 @@ export function WorkshopsView() {
 
           <div className="lg:col-span-7 p-6 lg:p-8 flex flex-col justify-between gap-5">
             <div className="space-y-3">
-              <p className="text-xs font-mono text-[var(--accent-cyan)]">
-                {formatLocalDateTime(upcoming.startsAtIso, isClient)} · {upcoming.academyTimezone}
-              </p>
+              <div className="space-y-1">
+                <p className="inline-flex items-center gap-1.5 text-xs font-mono text-[var(--accent-cyan)]">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>
+                    Academy time · {formatAcademyDate(upcoming.startsAtIso, upcoming.academyTimezone)} ·{' '}
+                    {upcoming.academyTimezone}
+                  </span>
+                </p>
+                <p className="text-xs font-mono text-[var(--text-tertiary)]">
+                  Your time · {formatLocalDateTime(upcoming.startsAtIso, isClient)}
+                </p>
+              </div>
+
               <h2 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)]">
                 {upcoming.title}
               </h2>
-              <p className="text-xs font-mono text-[var(--text-tertiary)]">
-                Prereq: {upcoming.prerequisites}
+              <p className="text-sm text-[var(--text-secondary)]">{upcoming.summary}</p>
+              <p className="text-xs text-[var(--text-tertiary)]">
+                <span className="font-mono">Prerequisites:</span> {upcoming.prerequisites}
               </p>
             </div>
 
@@ -217,55 +271,32 @@ export function WorkshopsView() {
                     <div className="flex items-center gap-2 text-xs font-mono text-[var(--text-tertiary)]">
                       <span className="text-[var(--accent-cyan)]">#{ws.issueNumber}</span>
                       <span aria-hidden="true">·</span>
-                      <span>{ws.startsAtIso.slice(0, 10)}</span>
+                      <span>{formatAcademyDate(ws.startsAtIso, ws.academyTimezone)}</span>
                     </div>
                     <h3 className="text-base font-semibold text-[var(--text-primary)]">{ws.title}</h3>
+                    <p className="text-xs text-[var(--text-secondary)] line-clamp-2">{ws.summary}</p>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-[var(--surface-border)]">
                     {ws.resources.slidesUrl && (
-                      <a
-                        href={ws.resources.slidesUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="min-h-[34px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--surface-border)] bg-[var(--surface-overlay)] text-[var(--text-primary)] hover:border-[var(--text-tertiary)] whitespace-nowrap"
-                      >
-                        <Presentation className="w-3.5 h-3.5" />
-                        <span>Slides</span>
-                      </a>
+                      <ResourceLink href={ws.resources.slidesUrl} icon={Presentation} label="Slides" />
                     )}
                     {ws.resources.repoUrl && (
-                      <a
-                        href={ws.resources.repoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="min-h-[34px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--surface-border)] bg-[var(--surface-overlay)] text-[var(--text-primary)] hover:border-[var(--text-tertiary)] whitespace-nowrap"
-                      >
-                        <FileCode2 className="w-3.5 h-3.5" />
-                        <span>Repo</span>
-                      </a>
+                      <ResourceLink href={ws.resources.repoUrl} icon={FileCode2} label="Repo" />
                     )}
                     {ws.resources.notebookUrl && (
-                      <a
+                      <ResourceLink
                         href={ws.resources.notebookUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="min-h-[34px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--surface-border)] bg-[var(--surface-overlay)] text-[var(--text-primary)] hover:border-[var(--text-tertiary)] whitespace-nowrap"
-                      >
-                        <BookMarked className="w-3.5 h-3.5" />
-                        <span>Notebook</span>
-                      </a>
+                        icon={BookMarked}
+                        label="Notebook"
+                      />
                     )}
                     {ws.resources.problemSetUrl && (
-                      <a
+                      <ResourceLink
                         href={ws.resources.problemSetUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="min-h-[34px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--surface-border)] bg-[var(--surface-overlay)] text-[var(--text-primary)] hover:border-[var(--text-tertiary)] whitespace-nowrap"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        <span>Problems</span>
-                      </a>
+                        icon={ExternalLink}
+                        label="Problems"
+                      />
                     )}
                   </div>
                 </article>

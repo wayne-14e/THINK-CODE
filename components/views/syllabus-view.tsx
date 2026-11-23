@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import Markdown from 'react-markdown';
 import { CheckCircle2, ChevronDown, ChevronUp, Clock, Code2 } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -26,6 +25,12 @@ export function SyllabusView({ onOpenProblem }: SyllabusViewProps) {
     activeTrack && activeTrack.modules.length > 0
       ? Math.round((completedInTrack / activeTrack.modules.length) * 100)
       : 0;
+  const trackXp = activeTrack
+    ? activeTrack.modules.reduce((acc, mod) => acc + mod.xpReward, 0)
+    : 0;
+  const trackMinutes = activeTrack
+    ? activeTrack.modules.reduce((acc, mod) => acc + mod.readingMinutes, 0)
+    : 0;
 
   const handleComplete = async (moduleId: string, xpReward: number) => {
     if (!user) {
@@ -83,42 +88,52 @@ export function SyllabusView({ onOpenProblem }: SyllabusViewProps) {
 
       {activeTrack && (
         <div className="space-y-5">
-          {/* Visual Track Header Card */}
-          <div className="rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-raised)] overflow-hidden grid grid-cols-1 md:grid-cols-12 items-stretch">
-            <div className="md:col-span-8 p-6 flex flex-col justify-between gap-4">
-              <div className="space-y-1">
+          {/* Track header: orientation and totals, no illustration */}
+          <div className="rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-6 space-y-5">
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-5">
+              <div className="space-y-1.5 max-w-2xl">
                 <p className="text-xs font-mono text-[var(--brand-primary)]">
                   Track 0{activeTrack.order}
                 </p>
                 <h2 className="text-xl font-bold text-[var(--text-primary)]">
                   {activeTrack.title}
                 </h2>
+                <p className="text-sm text-[var(--text-secondary)]">{activeTrack.subtitle}</p>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs font-mono tabular-nums text-[var(--text-tertiary)]">
-                  <span>Progress</span>
-                  <span className="text-[var(--text-primary)]">
-                    {completedInTrack}/{activeTrack.modules.length} ({trackPct}%)
-                  </span>
+              <div className="flex items-center gap-6 font-mono tabular-nums shrink-0">
+                <div>
+                  <p className="text-xs text-[var(--text-tertiary)]">Modules</p>
+                  <p className="mt-1 text-lg font-bold text-[var(--text-primary)]">
+                    {activeTrack.modules.length}
+                  </p>
                 </div>
-                <div className="h-2 rounded-full bg-[var(--surface-overlay)] overflow-hidden">
-                  <div
-                    className="h-full bg-[var(--brand-primary)] transition-all"
-                    style={{ width: `${Math.max(3, trackPct)}%`, opacity: completedInTrack === 0 ? 0.25 : 1 }}
-                  />
+                <div>
+                  <p className="text-xs text-[var(--text-tertiary)]">XP</p>
+                  <p className="mt-1 text-lg font-bold text-[var(--text-primary)]">{trackXp}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-[var(--text-tertiary)]">Reading</p>
+                  <p className="mt-1 text-lg font-bold text-[var(--text-primary)]">
+                    {trackMinutes}m
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="md:col-span-4 relative min-h-[140px]">
-              <Image
-                src="/images/illustration-trace.png"
-                alt={activeTrack.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 33vw"
-                className="object-contain p-4"
-              />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs font-mono tabular-nums text-[var(--text-tertiary)]">
+                <span>Progress</span>
+                <span className="text-[var(--text-primary)]">
+                  {completedInTrack}/{activeTrack.modules.length} ({trackPct}%)
+                </span>
+              </div>
+              <div className="h-2 rounded-full bg-[var(--surface-overlay)] overflow-hidden">
+                <div
+                  className="h-full bg-[var(--brand-primary)] transition-all"
+                  style={{ width: `${Math.max(3, trackPct)}%`, opacity: completedInTrack === 0 ? 0.25 : 1 }}
+                />
+              </div>
             </div>
           </div>
 

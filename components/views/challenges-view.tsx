@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { CheckCircle2, Circle, Search } from 'lucide-react';
+import { Check, CheckCircle2, Circle, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useFirebase } from '../providers/firebase-provider';
 import type { Difficulty } from '@/lib/types';
@@ -79,6 +79,7 @@ export function ChallengesView({ onOpenProblem }: ChallengesViewProps) {
             onClick={() =>
               setDifficultyFilter(difficultyFilter === stat.level ? 'all' : stat.level)
             }
+            aria-pressed={difficultyFilter === stat.level}
             className={`text-left rounded-xl border p-4 space-y-2.5 transition-colors ${
               difficultyFilter === stat.level
                 ? 'border-[var(--brand-primary)] bg-[var(--surface-overlay)]'
@@ -86,8 +87,9 @@ export function ChallengesView({ onOpenProblem }: ChallengesViewProps) {
             }`}
           >
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className={`capitalize font-semibold ${DIFFICULTY_TEXT[stat.level]}`}>
-                {stat.level}
+              <span className={`inline-flex items-center gap-1 capitalize font-semibold ${DIFFICULTY_TEXT[stat.level]}`}>
+                <span>{stat.level}</span>
+                {difficultyFilter === stat.level && <Check className="w-3 h-3" aria-hidden="true" />}
               </span>
               <span className="tabular-nums text-[var(--text-secondary)]">
                 {stat.solved}/{stat.total}
@@ -106,22 +108,15 @@ export function ChallengesView({ onOpenProblem }: ChallengesViewProps) {
       {/* Filter & Search Toolbar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1 p-1 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-raised)]">
-            {(['all', 'easy', 'medium', 'hard'] as const).map((level) => (
-              <button
-                key={level}
-                type="button"
-                onClick={() => setDifficultyFilter(level)}
-                className={`min-h-[32px] px-3 py-1 rounded-md text-xs font-medium capitalize transition-colors whitespace-nowrap ${
-                  difficultyFilter === level
-                    ? 'bg-[var(--brand-primary)] text-[var(--brand-ink)] font-semibold'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                {level}
-              </button>
-            ))}
-          </div>
+          {difficultyFilter !== 'all' && (
+            <button
+              type="button"
+              onClick={() => setDifficultyFilter('all')}
+              className="min-h-[40px] px-3 py-1.5 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-overlay)] text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors whitespace-nowrap"
+            >
+              All difficulties
+            </button>
+          )}
 
           <label className="sr-only" htmlFor="track-filter-select">
             Filter by track
@@ -184,8 +179,7 @@ export function ChallengesView({ onOpenProblem }: ChallengesViewProps) {
                   return (
                     <tr
                       key={problem.id}
-                      onClick={() => onOpenProblem(problem.id)}
-                      className="h-12 hover:bg-[var(--surface-overlay)]/60 transition-colors cursor-pointer"
+                      className="h-12 hover:bg-[var(--surface-overlay)]/60 transition-colors"
                     >
                       <td className="py-2.5 px-4">
                         {solved ? (
@@ -202,9 +196,13 @@ export function ChallengesView({ onOpenProblem }: ChallengesViewProps) {
                       </td>
                       <td className="py-2.5 px-4">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-medium text-[var(--text-primary)]">
+                          <button
+                            type="button"
+                            onClick={() => onOpenProblem(problem.id)}
+                            className="text-left font-medium text-[var(--text-primary)] hover:text-[var(--brand-primary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 rounded transition-colors"
+                          >
                             {problem.title}
-                          </span>
+                          </button>
                           {problem.isDaily && (
                             <span className="font-mono text-xs text-[var(--brand-primary)]">
                               · Daily

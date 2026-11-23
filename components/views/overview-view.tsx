@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import {
   ArrowRight,
+  BookOpen,
+  Brain,
   Calendar,
   CheckCircle2,
-  Clock,
   Code2,
   Flame,
   Trophy,
@@ -89,7 +89,7 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
       transition={{ duration: 0.18, ease: 'easeOut' }}
       className="p-4 sm:p-6 lg:p-8 space-y-6"
     >
-      {/* Visual Hero Banner: Daily Challenge */}
+      {/* Daily Challenge: task first, with the trace-to-editor flow beside it */}
       {dailyProblem && (
         <section className="rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-raised)] overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch">
           <div className="lg:col-span-7 p-6 lg:p-8 flex flex-col justify-between gap-6">
@@ -106,24 +106,9 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
                 {dailyProblem.title}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-5 pt-1 text-xs font-medium text-[var(--text-secondary)]">
-                <span className="inline-flex items-center gap-1.5">
-                  {thinkDone ? (
-                    <CheckCircle2 className="w-4 h-4 text-[var(--status-success)]" />
-                  ) : (
-                    <Clock className="w-4 h-4 text-[var(--text-tertiary)]" />
-                  )}
-                  <span>{thinkDone ? 'Trace passed' : 'Trace check'}</span>
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  {dailySolved ? (
-                    <CheckCircle2 className="w-4 h-4 text-[var(--status-success)]" />
-                  ) : (
-                    <Code2 className="w-4 h-4 text-[var(--text-tertiary)]" />
-                  )}
-                  <span>{dailySolved ? 'Accepted' : 'Unsolved'}</span>
-                </span>
-              </div>
+              <p className="max-w-lg text-sm text-[var(--text-secondary)]">
+                Read the statement, predict the trace, then implement it in the workspace.
+              </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -145,14 +130,45 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
             </div>
           </div>
 
-          <div className="lg:col-span-5 relative min-h-[190px]">
-            <Image
-              src="/images/illustration-path.png"
-              alt="Isometric path of stairs leading to a flag, representing daily progress"
-              fill
-              sizes="(max-width: 1024px) 100vw, 40vw"
-              className="object-contain p-6"
-            />
+          <div className="lg:col-span-5 border-t lg:border-t-0 lg:border-l border-[var(--surface-border)] bg-[var(--surface-deep)]/40 p-6 lg:p-8">
+            <p className="text-xs font-mono text-[var(--text-tertiary)]">Today&apos;s flow</p>
+            <ol className="mt-4 space-y-4">
+              <li className="flex items-start gap-3">
+                {thinkDone ? (
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--status-success)]" />
+                ) : (
+                  <Brain className="mt-0.5 h-4 w-4 shrink-0 text-[var(--text-tertiary)]" />
+                )}
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">Trace check</p>
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    {thinkDone ? 'Passed. The reasoning is saved.' : 'Predict the output before running.'}
+                  </p>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                {dailySolved ? (
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--status-success)]" />
+                ) : (
+                  <Code2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--text-tertiary)]" />
+                )}
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">Implement and submit</p>
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    {dailySolved ? 'Accepted. Nice work.' : 'Not submitted yet.'}
+                  </p>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-[var(--text-tertiary)]" />
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">Review the editorial</p>
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    Compare your approach after a real attempt.
+                  </p>
+                </div>
+              </li>
+            </ol>
           </div>
         </section>
       )}
@@ -254,35 +270,30 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
         {/* Right Stack: Visual Workshop Card + Leaderboard */}
         <div className="lg:col-span-5 space-y-6">
           {upcomingWorkshop && (
-            <section className="rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] overflow-hidden">
-              <div className="relative h-40 border-b border-[var(--surface-border)]">
-                <Image
-                  src="/images/illustration-hero.png"
-                  alt="Code editor illustration representing a Sunday workshop"
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 40vw"
-                  className="object-contain p-3"
-                />
-              </div>
-              <div className="px-5 pt-3 flex items-center justify-between text-xs font-mono text-[var(--text-secondary)]">
+            <section className="rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-5 space-y-3">
+              <div className="flex items-center justify-between gap-3 text-xs font-mono text-[var(--text-secondary)]">
                 <span className="inline-flex items-center gap-1.5 text-[var(--accent-cyan)]">
                   <Calendar className="w-3.5 h-3.5" />
                   <span>Workshop {upcomingWorkshop.issueNumber}</span>
                 </span>
-                <span>{localWorkshopDate}</span>
+                <span className="text-right">Your time · {localWorkshopDate}</span>
               </div>
-              <div className="p-5 flex items-center justify-between gap-4">
-                <h2 className="text-sm font-semibold text-[var(--text-primary)] truncate">
-                  {upcomingWorkshop.title}
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => onNavigate('workshops')}
-                  className="min-h-[36px] px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[var(--surface-overlay)] border border-[var(--surface-border)] text-[var(--text-primary)] hover:border-[var(--text-tertiary)] whitespace-nowrap shrink-0"
-                >
-                  RSVP
-                </button>
-              </div>
+
+              <h2 className="text-base font-semibold text-[var(--text-primary)]">
+                {upcomingWorkshop.title}
+              </h2>
+
+              <p className="text-xs text-[var(--text-secondary)] line-clamp-2">
+                {upcomingWorkshop.summary}
+              </p>
+
+              <button
+                type="button"
+                onClick={() => onNavigate('workshops')}
+                className="min-h-[36px] px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[var(--surface-overlay)] border border-[var(--surface-border)] text-[var(--text-primary)] hover:border-[var(--text-tertiary)] whitespace-nowrap"
+              >
+                View workshop & RSVP
+              </button>
             </section>
           )}
 

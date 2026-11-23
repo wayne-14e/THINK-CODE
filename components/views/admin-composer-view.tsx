@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CheckCircle2, Database, Plus, Trash2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Database, Plus, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useFirebase } from '../providers/firebase-provider';
 import type { Difficulty, Language, TestCase } from '@/lib/types';
@@ -17,7 +17,7 @@ export function AdminComposerView() {
 
   const [tab, setTab] = useState<'problem' | 'workshop'>('problem');
   const [syncing, setSyncing] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
 
   // Problem Composer State
   const [probTitle, setProbTitle] = useState('');
@@ -87,9 +87,12 @@ export function AdminComposerView() {
     setNotice(null);
     try {
       await syncStarterCurriculum();
-      setNotice('Starter syllabus tracks, challenges, and workshops synced to Firestore.');
+      setNotice({
+        ok: true,
+        text: 'Starter syllabus tracks, challenges, and workshops synced to Firestore.',
+      });
     } catch (err) {
-      setNotice(err instanceof Error ? err.message : 'Sync failed.');
+      setNotice({ ok: false, text: err instanceof Error ? err.message : 'Sync failed.' });
     } finally {
       setSyncing(false);
     }
@@ -104,7 +107,7 @@ export function AdminComposerView() {
       .slice(0, 64);
 
     if (!cleanSlug || cleanSlug.length < 2) {
-      setNotice('Provide a valid problem title or slug.');
+      setNotice({ ok: false, text: 'Provide a valid problem title or slug.' });
       return;
     }
 
@@ -142,12 +145,15 @@ export function AdminComposerView() {
         },
         testCases: testCases.map((tc, idx) => ({ ...tc, id: `tc-${idx + 1}` })),
       });
-      setNotice(`Published challenge "${probTitle}" (${cleanSlug}).`);
+      setNotice({ ok: true, text: `Published challenge "${probTitle}" (${cleanSlug}).` });
       setProbTitle('');
       setProbSlug('');
       setProbDescription('');
     } catch (err) {
-      setNotice(err instanceof Error ? err.message : 'Unable to save problem.');
+      setNotice({
+        ok: false,
+        text: err instanceof Error ? err.message : 'Unable to save problem.',
+      });
     } finally {
       setSaving(false);
     }
@@ -176,11 +182,14 @@ export function AdminComposerView() {
           ...(wsNotebook.trim() ? { notebookUrl: wsNotebook.trim() } : {}),
         },
       });
-      setNotice(`Published Workshop ${wsIssue}: "${wsTitle}".`);
+      setNotice({ ok: true, text: `Published Workshop ${wsIssue}: "${wsTitle}".` });
       setWsTitle('');
       setWsSummary('');
     } catch (err) {
-      setNotice(err instanceof Error ? err.message : 'Unable to publish workshop.');
+      setNotice({
+        ok: false,
+        text: err instanceof Error ? err.message : 'Unable to publish workshop.',
+      });
     } finally {
       setSaving(false);
     }
@@ -199,7 +208,7 @@ export function AdminComposerView() {
             Admin Composer
           </h1>
           <p className="text-sm text-[var(--text-secondary)]">
-            Publish challenges and Sunday workshops.
+            Publish challenges and live workshops.
           </p>
         </div>
 
@@ -240,9 +249,20 @@ export function AdminComposerView() {
       </div>
 
       {notice && (
-        <div className="flex items-center gap-2 rounded-lg border border-[var(--brand-primary)]/40 bg-[var(--surface-raised)] px-4 py-3 text-sm text-[var(--brand-primary)]">
-          <CheckCircle2 className="w-4 h-4 shrink-0" />
-          <span>{notice}</span>
+        <div
+          role={notice.ok ? 'status' : 'alert'}
+          className={`flex items-center gap-2 rounded-lg border bg-[var(--surface-raised)] px-4 py-3 text-sm ${
+            notice.ok
+              ? 'border-[var(--brand-primary)]/40 text-[var(--brand-primary)]'
+              : 'border-[var(--status-error)]/40 text-[var(--status-error)]'
+          }`}
+        >
+          {notice.ok ? (
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+          ) : (
+            <AlertCircle className="w-4 h-4 shrink-0" />
+          )}
+          <span>{notice.text}</span>
         </div>
       )}
 
@@ -703,7 +723,7 @@ export function AdminComposerView() {
               onChange={(e) => setWsUpcoming(e.target.checked)}
               className="w-4 h-4 accent-[var(--brand-primary)]"
             />
-            <span>Feature as upcoming Sunday session</span>
+            <span>Feature as the upcoming live session</span>
           </label>
 
           <div>

@@ -868,7 +868,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
 
   const toggleWorkshopRsvp = async (workshopId: string, currentlyRsvped: boolean) => {
     if (!user || !publicProfile) {
-      throw new Error('Sign in to RSVP for Sunday workshops.');
+      throw new Error('Sign in to RSVP for live workshops.');
     }
     if (!firestoreWorkshopIds.has(workshopId)) {
       throw new Error(

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CheckCircle2, Flame, KeyRound, Save, ShieldCheck, UserCheck } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Flame, KeyRound, Save, ShieldCheck, UserCheck } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useFirebase } from '../providers/firebase-provider';
 
@@ -22,7 +22,7 @@ export function ProfileView() {
   const [draftGithub, setDraftGithub] = useState<string | null>(null);
   const [draftTelegram, setDraftTelegram] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [statusMsg, setStatusMsg] = useState<string | null>(null);
+  const [statusMsg, setStatusMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   const [showPasscodeInput, setShowPasscodeInput] = useState(false);
   const [passcode, setPasscode] = useState('');
@@ -63,9 +63,12 @@ export function ProfileView() {
     setSaving(true);
     try {
       await updateProfileDetails({ nickname, githubHandle, telegramHandle });
-      setStatusMsg('Profile updated.');
+      setStatusMsg({ ok: true, text: 'Profile updated.' });
     } catch (err) {
-      setStatusMsg(err instanceof Error ? err.message : 'Unable to save profile.');
+      setStatusMsg({
+        ok: false,
+        text: err instanceof Error ? err.message : 'Unable to save profile.',
+      });
     } finally {
       setSaving(false);
     }
@@ -86,7 +89,7 @@ export function ProfileView() {
           <h1 className="mt-1 text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
             {publicProfile.nickname}
           </h1>
-          <p className="text-sm text-[var(--text-secondary)]">{user.email}</p>
+          <p className="text-sm text-[var(--text-secondary)]">Signed in as {user.email}</p>
         </div>
 
         <div className="flex items-center gap-6 font-mono tabular-nums">
@@ -195,13 +198,16 @@ export function ProfileView() {
             onSubmit={(e) => void handleSave(e)}
             className="space-y-4 pt-4 border-t border-[var(--surface-border)]"
           >
-            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-              Community Identity
-            </h2>
+            <div className="space-y-1">
+              <h2 className="text-sm font-semibold text-[var(--text-primary)]">Public profile</h2>
+              <p className="text-xs text-[var(--text-secondary)]">
+                Your display name is the identity shown on the leaderboard and in mentor Q&amp;A.
+              </p>
+            </div>
 
             <div className="space-y-1.5">
               <label htmlFor="profile-nick" className="block text-xs font-medium text-[var(--text-secondary)]">
-                Nickname (matches Discord / Telegram)
+                Display name
               </label>
               <input
                 id="profile-nick"
@@ -217,7 +223,7 @@ export function ProfileView() {
 
             <div className="space-y-1.5">
               <label htmlFor="profile-gh" className="block text-xs font-medium text-[var(--text-secondary)]">
-                GitHub handle
+                GitHub handle <span className="text-[var(--text-tertiary)]">(optional)</span>
               </label>
               <input
                 id="profile-gh"
@@ -232,7 +238,7 @@ export function ProfileView() {
 
             <div className="space-y-1.5">
               <label htmlFor="profile-tg" className="block text-xs font-medium text-[var(--text-secondary)]">
-                Telegram handle
+                Telegram handle <span className="text-[var(--text-tertiary)]">(optional)</span>
               </label>
               <input
                 id="profile-tg"
@@ -246,9 +252,17 @@ export function ProfileView() {
             </div>
 
             {statusMsg && (
-              <p className="inline-flex items-center gap-1.5 text-xs text-[var(--brand-primary)]">
-                <UserCheck className="w-3.5 h-3.5" />
-                <span>{statusMsg}</span>
+              <p
+                className={`inline-flex items-center gap-1.5 text-xs ${
+                  statusMsg.ok ? 'text-[var(--brand-primary)]' : 'text-[var(--status-error)]'
+                }`}
+              >
+                {statusMsg.ok ? (
+                  <UserCheck className="w-3.5 h-3.5" />
+                ) : (
+                  <AlertCircle className="w-3.5 h-3.5" />
+                )}
+                <span>{statusMsg.text}</span>
               </p>
             )}
 
