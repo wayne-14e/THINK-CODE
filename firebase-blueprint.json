@@ -11,6 +11,11 @@
         "avatarInitials": { "type": "string", "minLength": 1, "maxLength": 4 },
         "githubHandle": { "type": "string", "minLength": 0, "maxLength": 40 },
         "telegramHandle": { "type": "string", "minLength": 0, "maxLength": 40 },
+        "stack": { "type": "array" },
+        "tags": { "type": "array" },
+        "badges": { "type": "array" },
+        "completedTrackSlugs": { "type": "array" },
+        "weeklyXpWeek": { "type": "string", "maxLength": 10 },
         "xp": { "type": "number" },
         "weeklyXp": { "type": "number" },
         "currentStreak": { "type": "number" },
@@ -133,7 +138,7 @@
     },
     "Workshop": {
       "title": "Workshop",
-      "description": "Live Sunday Discord workshop or archived session with slides and notebooks.",
+      "description": "Live academy workshop or archived session with agenda, replay, slides, and notebooks.",
       "type": "object",
       "properties": {
         "issueNumber": { "type": "string", "minLength": 1, "maxLength": 12 },
@@ -145,6 +150,7 @@
         "prerequisites": { "type": "string", "maxLength": 400 },
         "locationUrl": { "type": "string", "maxLength": 400 },
         "isUpcoming": { "type": "boolean" },
+        "agenda": { "type": "array" },
         "resources": { "type": "object" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
@@ -161,6 +167,19 @@
         "rsvpedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "nickname", "rsvpedAt"]
+    },
+    "WorkshopTopicFeedback": {
+      "title": "WorkshopTopicFeedback",
+      "description": "Member opinion on an upcoming workshop topic, including a suggested alternative when the current topic does not work.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "nickname": { "type": "string", "minLength": 2, "maxLength": 40 },
+        "works": { "type": "boolean" },
+        "suggestion": { "type": "string", "maxLength": 400 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "nickname", "works", "suggestion", "updatedAt"]
     }
   },
   "firestore": {
@@ -199,6 +218,10 @@
     "/workshops/{workshopId}/rsvps/{uid}": {
       "schema": { "$ref": "#/entities/WorkshopRsvp" },
       "description": "Learner RSVPs per workshop."
+    },
+    "/workshops/{workshopId}/topicFeedback/{uid}": {
+      "schema": { "$ref": "#/entities/WorkshopTopicFeedback" },
+      "description": "Member topic feedback and alternative suggestions per workshop."
     }
   }
 }

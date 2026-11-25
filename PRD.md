@@ -19,7 +19,7 @@ The community already meets and shares daily coding quizzes through Telegram. Th
 
 - Primary audience: beginner and early-career coders, generally age 14+, including people building skills for a future technology job or interview.
 - Mentors and community admins curate learning materials and help members.
-- The community communicates in English and Russian. The current interface is English-only; a bilingual English/Russian UI is a product goal, not an implemented feature.
+- The community communicates in English and Russian. The interface now has an English/Russian language toggle for UI chrome and primary screens; learning content, problem statements, editorials, and workshop copy remain authored content and are not machine-translated.
 - Sign-up is open to learners. Google and GitHub are the intended sign-in providers.
 
 ## 3. Product principles and boundaries
@@ -52,19 +52,19 @@ The following describes the checked repository, not a production deployment clai
 | Challenges | Twelve seeded coding problems with difficulty, examples, test cases, XP values, daily designation, and Think-Before-You-Run prompts. |
 | Coding workspace | Monaco editor; Python, JavaScript, and C++; problem description, trace check, editorial, per-problem mentor Q&A, and execution results. Python and JavaScript have browser-worker fallbacks; C++ requires a configured Piston endpoint. |
 | Progress | Module completion, trace-passed and solved state, XP, streaks, submission history, and weekly/all-time leaderboard views. |
-| Member profile | Editable display name, optional GitHub/Telegram contact handles, progress and solved counts. This is not yet the single-username, stack, tags, badges, and public profile experience described below. |
-| Workshops | Upcoming workshop information, RSVP/cancel RSVP, external session link, and an archive UI for past workshop resources. Current seed data contains one upcoming workshop; replay video, agenda, and member topic voting are not represented in the current data model. |
-| Admin content tools | Passcode-based admin elevation and a composer for problems and workshops. Manual XP and badge awards are not implemented. |
+| Member profile | Editable display name, optional GitHub/Telegram contact handles, technology stack, tags, badges, progress, solved counts, and completed tracks. Leaderboard member selection opens a public profile modal. |
+| Workshops | Upcoming workshop information, agenda, RSVP/cancel RSVP, external session link, optional replay and supporting materials, topic feedback with a required alternative suggestion, and an archive UI for past workshop resources. |
+| Admin content tools | Passcode-based admin elevation, a composer for problems and workshops (including agenda, replay, and materials), starter-curriculum sync, and manual XP/badge awards to individual members. |
+| Community and feedback | Telegram, Discord, and feedback-form links render only when the owner configures their public environment variables; unset links are hidden rather than replaced with placeholders. |
 | Visual system | Dark-only charcoal UI with lime, cyan, and amber semantic accents. Inter is used for interface text and headings; JetBrains Mono is reserved for code, metrics, and short technical labels. Illustrations remain only on the landing page and the upcoming workshop card; see `DESIGN.md`. |
 
 ### Known implementation gaps
 
 - Enrich and quality-check lesson material with clear explanations and engaging context such as useful facts or history.
-- Add persistent Telegram and Discord community links, including a Telegram destination in the sidebar.
-- Expand workshop records and UI with agenda, replay/video, complete supporting materials, and member feedback on upcoming topics.
-- Add the owner-provided Airtable feedback form for LMS and community feedback.
-- Implement the revised member identity/profile and badge/reward direction in section 7.
-- Add English/Russian localization.
+- Localize the remaining error-state and edge-case copy, and decide how authored learning content should be localized.
+- Configure the owner-provided Telegram, Discord, and Airtable feedback destinations in the environment; links are hidden until configured.
+- Add more workshop records with real agenda, replay, and materials as sessions happen.
+- Define automatic badge criteria, referral attribution, and competition rules before implementing them.
 
 ## 6. Core product requirements
 
@@ -88,25 +88,25 @@ The following describes the checked repository, not a production deployment clai
 - Show each upcoming workshop's date, time, topic, agenda, and join link.
 - Workshops are usually on Sunday around 19:00 in Uzbekistan time (UTC+5), but the community may choose another time through a Telegram poll. Use the actual time for each event rather than assuming a fixed weekly schedule.
 - Keep past sessions available with replay/video and related slides, code, notebooks, and problem materials where provided.
-- Let members express whether an upcoming topic works for them. If a member dislikes it, require a suggested topic before submitting that response. Exact voting/editing rules can be decided during implementation.
+- Let members express whether an upcoming topic works for them. If a member dislikes it, require a suggested topic before submitting that response. Members can update their own response; other members' suggestions are shown without contact details.
 - Provide clear links to the Telegram and Discord communities. No general-purpose in-app chat is in scope.
 - Add the owner-provided Airtable form for feedback about the LMS and community. The form URL must come from the owner; do not invent one.
 
 ### 6.4 Accounts, profiles, and rankings
 
 - Support Google and GitHub sign-in.
-- Use one platform username as the member's identity; do not treat separate platform handles as competing usernames.
-- Let members add their technology stack and profile tags. External GitHub/Telegram links may be optional contact links, not alternate identity labels.
-- Keep XP, streaks, solved totals by difficulty, and weekly/all-time rankings.
-- Selecting a leaderboard member should open a profile view/modal with username, stack, tags, XP, badges, solved counts by difficulty, and completed tracks.
-- Public member information should be limited to the intended profile and ranking details. Never expose account email as public profile information.
+- Use one platform username as the member's identity; GitHub and Telegram remain optional contact links, not alternate identity labels.
+- Let members add up to five technology-stack items and up to five profile tags.
+- Keep XP, streaks, solved totals by difficulty, and weekly/all-time rankings. Weekly XP resets when a new ISO week begins; all-time XP is preserved.
+- Selecting a leaderboard member opens a profile view/modal with username, stack, tags, XP, badges, solved counts by difficulty, and completed tracks.
+- Public member information is limited to the intended profile and ranking details. Account email is never exposed as public profile information.
 - Keep open learner sign-up; admin publishing actions must remain admin-only.
 
 ### 6.5 XP, badges, referrals, and competitions
 
 - Continue rewarding learning progress and recognize meaningful community participation, including workshop attendance.
 - Let admins award XP and badges to individual members from an admin surface.
-- Badge concepts include strong problem-solving contribution, workshop participation, and referring a member who joins the community. Award criteria and whether any badges are automatic remain to be designed.
+- Use a small predefined badge catalog: problem-solving contribution, workshop participation, community referral, streak keeping, and track completion. Criteria are manual; no badge is awarded automatically yet.
 - Add member competitions with digital prizes as a later community feature. Competition format, schedule, scoring, and prize rules require a separate product decision.
 - Referral links and referral attribution are not currently implemented.
 
@@ -121,16 +121,23 @@ The following describes the checked repository, not a production deployment clai
 ### Owner-stated near-term priorities
 
 - Improve and review the existing lesson/problem content.
-- Add Telegram and Discord entry points.
-- Make workshop listings useful before and after each session, including agenda, join details, replays, and materials.
-- Add the Airtable feedback path.
+- Configure and verify the Telegram, Discord, and feedback-form destinations.
+- Add more real workshop records with agendas, replays, and materials as sessions happen.
 - Collect member feedback before committing to a broad feature expansion.
+
+### Implemented in the repository
+
+- English/Russian UI toggle for interface chrome and primary screens, with English as the default.
+- Telegram, Discord, and feedback links driven by public environment variables.
+- Single-username profiles with stack, tags, badges, completed tracks, and a leaderboard profile modal.
+- Admin-issued XP and badges from a manual catalog.
+- Workshop agenda, replay, materials, and topic feedback with required alternative suggestions.
+- Weekly XP reset using an ISO week key while preserving all-time XP.
 
 ### Later product directions
 
-- English/Russian UI.
-- Single-username profiles with stack, tags, badges, and a leaderboard profile view.
-- Admin-issued XP and badges, with criteria for contribution and referrals.
+- Complete Russian localization of authored learning content.
+- Define automatic badge criteria and referral attribution.
 - Member competitions with digital prizes.
 - A carefully designed guided AI tutor, only after product definition and approval.
 - Additional programming languages selected with member input.
@@ -147,10 +154,9 @@ This is a direction, not a promise of sequencing or delivery dates. Update it wh
 
 ## 9. Open decisions to resolve when relevant
 
-- Default language and language-switching behavior for the English/Russian UI.
-- Exact Telegram/Discord destinations and Airtable feedback URL.
-- Workshop agenda/replay data format and the rules for changing a vote.
-- Profile tag limits and badge award criteria.
+- How deeply to localize authored learning content beyond the current English/Russian UI chrome.
+- Exact Telegram/Discord destinations and Airtable feedback URL, supplied through environment variables.
+- Automatic badge criteria and referral attribution rules.
 - Competition format and prize rules.
 - Tutor behavior, boundaries, and data handling.
 - Final content priorities and which future languages members choose.

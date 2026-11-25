@@ -483,8 +483,9 @@ Time complexity: \`O(n)\`. Space complexity: \`O(1)\` auxiliary beyond input sto
     examples: [
       {
         input: '6 3\n1 12 -5 -6 50 3',
-        output: '51',
-        explanation: 'Subarray [12, -5, -6] sums to 1; [-5, -6, 50] sums to 39; [-6, 50, 3] sums to 47; wait: [12, -5, -6] = 1, [50, 3, ...] — actually max is 51? Wait: -5 + -6 + 50 = 39, 12 + -5 + -6 = 1, -6 + 50 + 3 = 47! Let us check: 1+12-5 = 8, 12-5-6=1, -5-6+50=39, -6+50+3=47.',
+        output: '47',
+        explanation:
+          'The windows are [1, 12, -5] = 8, [12, -5, -6] = 1, [-5, -6, 50] = 39, and [-6, 50, 3] = 47. The maximum window sum is 47.',
       },
     ],
     starterCode: {
@@ -1701,7 +1702,7 @@ export const SEED_WORKSHOPS: Workshop[] = [
     startsAtIso: '2026-11-29T16:00:00.000Z',
     academyTimezone: '21:00 UTC+5',
     prerequisites: 'Complete Lower Bound Insertion Index and bring questions for mentor review.',
-    locationUrl: 'https://discord.com/channels/@me',
+    locationUrl: '',
     isUpcoming: true,
     resources: {
       problemSetUrl: 'https://github.com/think-code-academy/workshops/tree/main/w08-binary-search',

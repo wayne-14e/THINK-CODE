@@ -16,6 +16,9 @@ import {
 } from 'lucide-react';
 import { useFirebase } from './providers/firebase-provider';
 import { AuthModal } from './auth-modal';
+import { CommunityLinks } from './community-links';
+import { LanguageToggle } from './language-toggle';
+import { useI18n } from '@/lib/i18n';
 
 export type NavSection =
   | 'overview'
@@ -60,6 +63,7 @@ export function AppShell({
   children,
 }: AppShellProps) {
   const { user, publicProfile, isAdmin, signOut } = useFirebase();
+  const { t } = useI18n();
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const sidebarCollapsed = useSyncExternalStore(
@@ -79,16 +83,16 @@ export function AppShell({
   };
 
   const navItems: { id: NavSection; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-    { id: 'overview', label: 'Overview', icon: Compass },
-    { id: 'syllabus', label: 'Syllabus', icon: BookOpen },
-    { id: 'challenges', label: 'Challenges', icon: Code2 },
-    { id: 'workshops', label: 'Workshops', icon: Calendar },
-    { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
-    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'overview', label: t('Overview'), icon: Compass },
+    { id: 'syllabus', label: t('Syllabus'), icon: BookOpen },
+    { id: 'challenges', label: t('Challenges'), icon: Code2 },
+    { id: 'workshops', label: t('Workshops'), icon: Calendar },
+    { id: 'leaderboard', label: t('Leaderboard'), icon: Trophy },
+    { id: 'profile', label: t('Profile'), icon: User },
   ];
 
   if (isAdmin) {
-    navItems.push({ id: 'compose', label: 'Compose', icon: PenSquare });
+    navItems.push({ id: 'compose', label: t('Compose'), icon: PenSquare });
   }
 
   return (
@@ -100,18 +104,20 @@ export function AppShell({
           <button
             type="button"
             onClick={() => onNavigate('overview')}
-            className="inline-flex items-center gap-2.5 font-mono text-base font-bold tracking-tight text-[var(--text-primary)] hover:text-[var(--brand-primary)] transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 rounded"
+            className="inline-flex items-center gap-2.5 font-mono text-base font-bold tracking-tight text-[var(--text-primary)] whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 rounded"
           >
             <Image
-              src="/assets/aistudio/logo.svg"
-              alt="THINK//CODE logo"
+              src="/assets/logo.svg"
+              alt={t('Brand logo')}
               width={36}
               height={22}
               referrerPolicy="no-referrer"
               className="h-6 w-auto shrink-0"
               priority
             />
-            <span>THINK//CODE</span>
+            <span>
+              THINK<span className="text-[var(--brand-primary)]">{'//'}</span>CODE
+            </span>
           </button>
         </div>
 
@@ -120,22 +126,24 @@ export function AppShell({
           {publicProfile ? (
             <>
               <span>
-                Streak <strong className="text-[var(--brand-primary)]">{publicProfile.currentStreak}d</strong>
+                {t('Streak')}{' '}
+                <strong className="text-[var(--brand-primary)]">{publicProfile.currentStreak}d</strong>
               </span>
               <span aria-hidden="true" className="text-[var(--surface-border)]">
                 ·
               </span>
               <span>
-                XP <strong className="text-[var(--text-primary)]">{publicProfile.xp}</strong>
+                {t('XP')} <strong className="text-[var(--text-primary)]">{publicProfile.xp}</strong>
               </span>
             </>
           ) : (
-            <span className="text-[var(--text-tertiary)]">Think. Code. Repeat.</span>
+            <span className="text-[var(--text-tertiary)]">{t('Think. Code. Repeat.')}</span>
           )}
         </div>
 
         {/* Zone 3: Primary Account Action */}
         <div className="flex items-center gap-2.5 shrink-0">
+          <LanguageToggle />
           {user ? (
             <div className="flex items-center gap-2 shrink-0">
               <button
@@ -147,13 +155,13 @@ export function AppShell({
                   {publicProfile?.avatarInitials || 'TC'}
                 </span>
                 <span className="hidden sm:inline max-w-[120px] truncate">
-                  {publicProfile?.nickname || 'Member'}
+                  {publicProfile?.nickname || t('Member')}
                 </span>
               </button>
               <button
                 type="button"
                 onClick={() => void signOut()}
-                aria-label="Sign out"
+                aria-label={t('Sign out')}
                 className="min-h-[36px] min-w-[36px] inline-flex items-center justify-center rounded-lg border border-[var(--surface-border)] bg-[var(--surface-raised)] text-[var(--text-secondary)] hover:text-[var(--status-error)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 transition-colors"
               >
                 <LogOut className="w-4 h-4" />
@@ -165,7 +173,7 @@ export function AppShell({
               onClick={() => setAuthModalOpen(true)}
               className="min-h-[36px] px-4 py-1.5 rounded-lg text-sm font-semibold bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 transition-colors whitespace-nowrap shrink-0"
             >
-              Sign in
+              {t('Sign in')}
             </button>
           )}
         </div>
@@ -174,48 +182,54 @@ export function AppShell({
       {/* Main Body: Collapsible Desktop Sidebar + Content */}
       <div className="flex-1 flex min-h-0">
         <aside
-          aria-label="Primary navigation"
+          aria-label={t('Primary navigation')}
           className={`hidden lg:flex lg:sticky lg:top-14 lg:h-[calc(100vh-3.5rem)] z-20 shrink-0 flex-col justify-between border-r border-[var(--surface-border)] bg-[var(--surface-raised)] transition-[width] duration-200 ease-out ${
             sidebarCollapsed ? 'w-16 p-2.5' : 'w-60 p-4'
           }`}
         >
-          <nav className="space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = activeSection === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => onNavigate(item.id)}
-                  aria-current={active ? 'page' : undefined}
-                  aria-label={sidebarCollapsed ? item.label : undefined}
-                  className={`relative group w-full min-h-[40px] flex items-center rounded-lg text-sm font-medium transition-colors whitespace-nowrap focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 ${
-                    sidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-3 py-2'
-                  } ${
-                    active
-                      ? 'bg-[var(--surface-overlay)] text-[var(--text-primary)] border border-[var(--surface-border)]'
-                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-overlay)]/60 border border-transparent'
-                  }`}
-                >
-                  <Icon
-                    className={`w-4 h-4 shrink-0 ${
-                      active ? 'text-[var(--brand-primary)]' : 'text-[var(--text-tertiary)]'
+          <div className="space-y-3">
+            <nav className="space-y-1">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const active = activeSection === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => onNavigate(item.id)}
+                    aria-current={active ? 'page' : undefined}
+                    aria-label={sidebarCollapsed ? item.label : undefined}
+                    className={`relative group w-full min-h-[40px] flex items-center rounded-lg text-sm font-medium transition-colors whitespace-nowrap focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 ${
+                      sidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-3 py-2'
+                    } ${
+                      active
+                        ? 'bg-[var(--surface-overlay)] text-[var(--text-primary)] border border-[var(--surface-border)]'
+                        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-overlay)]/60 border border-transparent'
                     }`}
-                  />
-                  {!sidebarCollapsed && <span>{item.label}</span>}
-                  {sidebarCollapsed && (
-                    <span
-                      role="tooltip"
-                      className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-40 px-2.5 py-1.5 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-overlay)] text-xs font-medium text-[var(--text-primary)] shadow-[0_4px_12px_rgba(0,0,0,0.2)] whitespace-nowrap opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-focus-visible:opacity-100 group-focus-visible:translate-x-0 transition-all duration-150"
-                    >
-                      {item.label}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
+                  >
+                    <Icon
+                      className={`w-4 h-4 shrink-0 ${
+                        active ? 'text-[var(--brand-primary)]' : 'text-[var(--text-tertiary)]'
+                      }`}
+                    />
+                    {!sidebarCollapsed && <span>{item.label}</span>}
+                    {sidebarCollapsed && (
+                      <span
+                        role="tooltip"
+                        className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-40 px-2.5 py-1.5 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-overlay)] text-xs font-medium text-[var(--text-primary)] shadow-[0_4px_12px_rgba(0,0,0,0.2)] whitespace-nowrap opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-focus-visible:opacity-100 group-focus-visible:translate-x-0 transition-all duration-150"
+                      >
+                        {item.label}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div className="pt-3 border-t border-[var(--surface-border)]">
+              <CommunityLinks variant="sidebar" collapsed={sidebarCollapsed} />
+            </div>
+          </div>
 
           {/* Bottom Side Panel Footer & Collapse Toggle */}
           <div
@@ -225,13 +239,13 @@ export function AppShell({
           >
             {!sidebarCollapsed && (
               <p className="text-xs font-medium text-[var(--text-secondary)] truncate">
-                Think. Code. Repeat.
+                {t('Think. Code. Repeat.')}
               </p>
             )}
             <button
               type="button"
               onClick={toggleSidebar}
-              aria-label={sidebarCollapsed ? 'Expand side panel' : 'Collapse side panel'}
+              aria-label={sidebarCollapsed ? t('Expand side panel') : t('Collapse side panel')}
               aria-expanded={!sidebarCollapsed}
               className="relative group min-h-[36px] min-w-[36px] shrink-0 inline-flex items-center justify-center rounded-lg border border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-overlay)] hover:border-[var(--surface-border)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 transition-colors"
             >
@@ -245,7 +259,7 @@ export function AppShell({
                   role="tooltip"
                   className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-40 px-2.5 py-1.5 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-overlay)] text-xs font-medium text-[var(--text-primary)] shadow-[0_4px_12px_rgba(0,0,0,0.2)] whitespace-nowrap opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-focus-visible:opacity-100 group-focus-visible:translate-x-0 transition-all duration-150"
                 >
-                  Expand side panel
+                  {t('Expand side panel')}
                 </span>
               )}
             </button>
@@ -260,7 +274,7 @@ export function AppShell({
 
       {/* Mobile Compact Bottom Navigation (<= 15% height, >= 44px targets) */}
       <nav
-        aria-label="Mobile navigation"
+        aria-label={t('Mobile navigation')}
         className="lg:hidden fixed bottom-0 inset-x-0 z-30 h-16 border-t border-[var(--surface-border)] bg-[var(--surface-raised)] px-2 flex items-center justify-around"
       >
         {navItems.slice(0, 5).map((item) => {

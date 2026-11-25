@@ -1,9 +1,29 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AlertCircle, CheckCircle2, Flame, KeyRound, Save, ShieldCheck, UserCheck } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  Flame,
+  GraduationCap,
+  KeyRound,
+  Save,
+  ShieldCheck,
+  UserCheck,
+} from 'lucide-react';
 import { motion } from 'motion/react';
 import { useFirebase } from '../providers/firebase-provider';
+import { useI18n } from '@/lib/i18n';
+import { getBadgeDefinition } from '@/lib/badges';
+
+const MAX_PROFILE_ITEMS = 5;
+
+function parseListInput(value: string): string[] {
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
 
 export function ProfileView() {
   const {
@@ -17,10 +37,13 @@ export function ProfileView() {
     unlockAdmin,
     signInWithGoogle,
   } = useFirebase();
+  const { t, language } = useI18n();
 
   const [draftNickname, setDraftNickname] = useState<string | null>(null);
   const [draftGithub, setDraftGithub] = useState<string | null>(null);
   const [draftTelegram, setDraftTelegram] = useState<string | null>(null);
+  const [draftStack, setDraftStack] = useState<string | null>(null);
+  const [draftTags, setDraftTags] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -32,21 +55,23 @@ export function ProfileView() {
   const nickname = draftNickname ?? publicProfile?.nickname ?? '';
   const githubHandle = draftGithub ?? publicProfile?.githubHandle ?? '';
   const telegramHandle = draftTelegram ?? publicProfile?.telegramHandle ?? '';
+  const stack = draftStack ?? (publicProfile?.stack || []).join(', ');
+  const tags = draftTags ?? (publicProfile?.tags || []).join(', ');
 
   if (!user || !publicProfile) {
     return (
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="max-w-lg rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-6 space-y-4">
-          <h1 className="text-xl font-bold text-[var(--text-primary)]">Profile</h1>
+          <h1 className="text-xl font-bold text-[var(--text-primary)]">{t('Profile')}</h1>
           <p className="text-sm text-[var(--text-secondary)]">
-            Sign in to sync streaks, solved challenges, and handles.
+            {t('Sign in to sync streaks, solved challenges, and handles.')}
           </p>
           <button
             type="button"
             onClick={() => void signInWithGoogle()}
             className="min-h-[42px] px-4 py-2 rounded-lg text-sm font-semibold bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] transition-colors"
           >
-            Continue with Google
+            {t('Continue with Google')}
           </button>
         </div>
       </div>
@@ -56,18 +81,29 @@ export function ProfileView() {
   const totalModules = tracks.reduce((acc, t) => acc + t.modules.length, 0);
   const completedModules = userPrivate?.completedModuleIds.length || 0;
   const pct = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
+  const completedTrackSlugs = publicProfile.completedTrackSlugs || [];
+  const completedTracks = tracks.filter((track) => completedTrackSlugs.includes(track.slug));
+  const badges = (publicProfile.badges || [])
+    .map((id) => getBadgeDefinition(id))
+    .filter((badge): badge is NonNullable<typeof badge> => Boolean(badge));
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatusMsg(null);
     setSaving(true);
     try {
-      await updateProfileDetails({ nickname, githubHandle, telegramHandle });
-      setStatusMsg({ ok: true, text: 'Profile updated.' });
+      await updateProfileDetails({
+        nickname,
+        githubHandle,
+        telegramHandle,
+        stack: parseListInput(stack),
+        tags: parseListInput(tags),
+      });
+      setStatusMsg({ ok: true, text: t('Profile updated.') });
     } catch (err) {
       setStatusMsg({
         ok: false,
-        text: err instanceof Error ? err.message : 'Unable to save profile.',
+        text: err instanceof Error ? err.message : t('Unable to save profile.'),
       });
     } finally {
       setSaving(false);
@@ -84,30 +120,32 @@ export function ProfileView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <p className="text-xs font-mono text-[var(--brand-primary)] capitalize">
-            {isAdmin ? 'admin' : 'learner'} account
+            {isAdmin ? t('admin account') : t('learner account')}
           </p>
           <h1 className="mt-1 text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
             {publicProfile.nickname}
           </h1>
-          <p className="text-sm text-[var(--text-secondary)]">Signed in as {user.email}</p>
+          <p className="text-sm text-[var(--text-secondary)]">
+            {t('Signed in as {email}', { email: user.email || '' })}
+          </p>
         </div>
 
         <div className="flex items-center gap-6 font-mono tabular-nums">
           <div>
-            <p className="text-xs text-[var(--text-tertiary)]">Current Streak</p>
+            <p className="text-xs text-[var(--text-tertiary)]">{t('Current Streak')}</p>
             <p className="text-xl font-bold text-[var(--brand-primary)] inline-flex items-center gap-1.5">
               <Flame className="w-4 h-4" />
               <span>{publicProfile.currentStreak}d</span>
             </p>
           </div>
           <div>
-            <p className="text-xs text-[var(--text-tertiary)]">Longest</p>
+            <p className="text-xs text-[var(--text-tertiary)]">{t('Longest')}</p>
             <p className="text-xl font-bold text-[var(--text-primary)]">
               {publicProfile.longestStreak}d
             </p>
           </div>
           <div>
-            <p className="text-xs text-[var(--text-tertiary)]">Total XP</p>
+            <p className="text-xs text-[var(--text-tertiary)]">{t('Total XP')}</p>
             <p className="text-xl font-bold text-[var(--text-primary)]">{publicProfile.xp}</p>
           </div>
         </div>
@@ -118,7 +156,9 @@ export function ProfileView() {
         <section className="lg:col-span-5 rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-6 space-y-6">
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="font-semibold text-[var(--text-primary)]">Syllabus Completion</span>
+              <span className="font-semibold text-[var(--text-primary)]">
+                {t('Syllabus Completion')}
+              </span>
               <span className="font-mono text-xs tabular-nums text-[var(--brand-primary)]">
                 {completedModules}/{totalModules} ({pct}%)
               </span>
@@ -133,9 +173,14 @@ export function ProfileView() {
 
           <div className="space-y-3 pt-4 border-t border-[var(--surface-border)]">
             <div className="flex items-center justify-between text-sm">
-              <h2 className="font-semibold text-[var(--text-primary)]">Solved Breakdown</h2>
+              <h2 className="font-semibold text-[var(--text-primary)]">{t('Solved Breakdown')}</h2>
               <span className="font-mono text-xs tabular-nums text-[var(--text-tertiary)]">
-                {publicProfile.solvedEasy + publicProfile.solvedMedium + publicProfile.solvedHard} total
+                {t('{total} total', {
+                  total:
+                    publicProfile.solvedEasy +
+                    publicProfile.solvedMedium +
+                    publicProfile.solvedHard,
+                })}
               </span>
             </div>
 
@@ -174,19 +219,19 @@ export function ProfileView() {
 
             <div className="grid grid-cols-3 gap-3 font-mono tabular-nums">
               <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] p-3">
-                <p className="text-xs text-[var(--status-success)]">Easy</p>
+                <p className="text-xs text-[var(--status-success)]">{t('Easy')}</p>
                 <p className="mt-1 text-lg font-bold text-[var(--text-primary)]">
                   {publicProfile.solvedEasy}
                 </p>
               </div>
               <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] p-3">
-                <p className="text-xs text-[var(--accent-amber)]">Medium</p>
+                <p className="text-xs text-[var(--accent-amber)]">{t('Medium')}</p>
                 <p className="mt-1 text-lg font-bold text-[var(--text-primary)]">
                   {publicProfile.solvedMedium}
                 </p>
               </div>
               <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] p-3">
-                <p className="text-xs text-[var(--status-error)]">Hard</p>
+                <p className="text-xs text-[var(--status-error)]">{t('Hard')}</p>
                 <p className="mt-1 text-lg font-bold text-[var(--text-primary)]">
                   {publicProfile.solvedHard}
                 </p>
@@ -194,20 +239,64 @@ export function ProfileView() {
             </div>
           </div>
 
+          <div className="space-y-3 pt-4 border-t border-[var(--surface-border)]">
+            <h2 className="text-sm font-semibold text-[var(--text-primary)]">{t('Badges')}</h2>
+            {badges.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {badges.map((badge) => (
+                  <span
+                    key={badge.id}
+                    title={language === 'ru' ? badge.descriptionRu : badge.description}
+                    className="inline-flex items-center rounded-lg border border-[var(--surface-border)] bg-[var(--surface-overlay)] px-2.5 py-1.5 text-xs font-medium text-[var(--text-primary)]"
+                  >
+                    {language === 'ru' ? badge.labelRu : badge.label}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-[var(--text-tertiary)]">{t('No badges yet.')}</p>
+            )}
+          </div>
+
+          <div className="space-y-3 pt-4 border-t border-[var(--surface-border)]">
+            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+              {t('Completed tracks')}
+            </h2>
+            {completedTracks.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {completedTracks.map((track) => (
+                  <span
+                    key={track.slug}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-[var(--surface-border)] bg-[var(--surface-overlay)] px-2 py-1 text-xs text-[var(--text-secondary)]"
+                  >
+                    <GraduationCap className="w-3.5 h-3.5 text-[var(--brand-primary)]" />
+                    {track.title}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-[var(--text-tertiary)]">{t('No completed tracks yet.')}</p>
+            )}
+          </div>
+
           <form
             onSubmit={(e) => void handleSave(e)}
             className="space-y-4 pt-4 border-t border-[var(--surface-border)]"
           >
             <div className="space-y-1">
-              <h2 className="text-sm font-semibold text-[var(--text-primary)]">Public profile</h2>
+              <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+                {t('Public profile')}
+              </h2>
               <p className="text-xs text-[var(--text-secondary)]">
-                Your display name is the identity shown on the leaderboard and in mentor Q&amp;A.
+                {t(
+                  'Your display name is the identity shown on the leaderboard and in mentor Q&A.'
+                )}
               </p>
             </div>
 
             <div className="space-y-1.5">
               <label htmlFor="profile-nick" className="block text-xs font-medium text-[var(--text-secondary)]">
-                Display name
+                {t('Display name')}
               </label>
               <input
                 id="profile-nick"
@@ -223,7 +312,7 @@ export function ProfileView() {
 
             <div className="space-y-1.5">
               <label htmlFor="profile-gh" className="block text-xs font-medium text-[var(--text-secondary)]">
-                GitHub handle <span className="text-[var(--text-tertiary)]">(optional)</span>
+                {t('GitHub handle')} <span className="text-[var(--text-tertiary)]">{t('(optional)')}</span>
               </label>
               <input
                 id="profile-gh"
@@ -238,7 +327,8 @@ export function ProfileView() {
 
             <div className="space-y-1.5">
               <label htmlFor="profile-tg" className="block text-xs font-medium text-[var(--text-secondary)]">
-                Telegram handle <span className="text-[var(--text-tertiary)]">(optional)</span>
+                {t('Telegram handle')}{' '}
+                <span className="text-[var(--text-tertiary)]">{t('(optional)')}</span>
               </label>
               <input
                 id="profile-tg"
@@ -249,6 +339,40 @@ export function ProfileView() {
                 onChange={(e) => setDraftTelegram(e.target.value)}
                 className="w-full min-h-[40px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm font-mono text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)]"
               />
+            </div>
+
+            <div className="space-y-1.5">
+              <label htmlFor="profile-stack" className="block text-xs font-medium text-[var(--text-secondary)]">
+                {t('Stack')}
+              </label>
+              <input
+                id="profile-stack"
+                type="text"
+                value={stack}
+                onChange={(e) => setDraftStack(e.target.value)}
+                placeholder={t('e.g. Python, TypeScript, Firestore')}
+                className="w-full min-h-[40px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)]"
+              />
+              <p className="text-[11px] text-[var(--text-tertiary)]">
+                {t('Add up to {count} comma-separated items.', { count: MAX_PROFILE_ITEMS })}
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label htmlFor="profile-tags" className="block text-xs font-medium text-[var(--text-secondary)]">
+                {t('Tags')}
+              </label>
+              <input
+                id="profile-tags"
+                type="text"
+                value={tags}
+                onChange={(e) => setDraftTags(e.target.value)}
+                placeholder={t('e.g. algorithms, backend, interview-prep')}
+                className="w-full min-h-[40px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)]"
+              />
+              <p className="text-[11px] text-[var(--text-tertiary)]">
+                {t('Add up to {count} comma-separated items.', { count: MAX_PROFILE_ITEMS })}
+              </p>
             </div>
 
             {statusMsg && (
@@ -272,7 +396,7 @@ export function ProfileView() {
               className="min-h-[40px] inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] disabled:opacity-50 transition-colors"
             >
               <Save className="w-4 h-4" />
-              <span>{saving ? 'Saving...' : 'Save profile'}</span>
+              <span>{saving ? t('Saving...') : t('Save profile')}</span>
             </button>
           </form>
 
@@ -281,7 +405,7 @@ export function ProfileView() {
             {isAdmin ? (
               <div className="flex items-center gap-2 text-xs font-medium text-[var(--status-success)]">
                 <ShieldCheck className="w-4 h-4 shrink-0" />
-                <span>Admin access unlocked · Compose tab is active</span>
+                <span>{t('Admin access unlocked · Compose tab is active')}</span>
               </div>
             ) : !showPasscodeInput ? (
               <button
@@ -293,7 +417,7 @@ export function ProfileView() {
                 className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 rounded transition-colors"
               >
                 <KeyRound className="w-3.5 h-3.5" />
-                <span>Admin passcode</span>
+                <span>{t('Admin passcode')}</span>
               </button>
             ) : (
               <form
@@ -309,12 +433,12 @@ export function ProfileView() {
                       setShowPasscodeInput(false);
                       setPasscodeNotice({
                         ok: true,
-                        text: 'Admin composer unlocked.',
+                        text: t('Admin composer unlocked.'),
                       });
                     } else {
                       setPasscodeNotice({
                         ok: false,
-                        text: result.error || 'Invalid admin passcode.',
+                        text: result.error || t('Invalid admin passcode.'),
                       });
                     }
                   })();
@@ -325,7 +449,7 @@ export function ProfileView() {
                   htmlFor="admin-passcode-input"
                   className="block text-xs font-medium text-[var(--text-secondary)]"
                 >
-                  Enter admin passcode
+                  {t('Enter admin passcode')}
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -336,7 +460,7 @@ export function ProfileView() {
                     required
                     value={passcode}
                     onChange={(e) => setPasscode(e.target.value)}
-                    placeholder="Passcode"
+                    placeholder={t('Passcode')}
                     className="flex-1 min-w-0 min-h-[38px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm font-mono text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)]"
                   />
                   <button
@@ -344,7 +468,7 @@ export function ProfileView() {
                     disabled={passcodeBusy}
                     className="min-h-[38px] px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] disabled:opacity-50 transition-colors whitespace-nowrap"
                   >
-                    {passcodeBusy ? 'Checking...' : 'Verify'}
+                    {passcodeBusy ? t('Checking...') : t('Verify')}
                   </button>
                   <button
                     type="button"
@@ -355,7 +479,7 @@ export function ProfileView() {
                     }}
                     className="min-h-[38px] px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--surface-border)] bg-[var(--surface-overlay)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors whitespace-nowrap"
                   >
-                    Cancel
+                    {t('Cancel')}
                   </button>
                 </div>
                 {passcodeNotice && (
@@ -377,23 +501,23 @@ export function ProfileView() {
         {/* Recent Submissions History */}
         <section className="lg:col-span-7 rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-6 space-y-4">
           <h2 className="text-base font-semibold text-[var(--text-primary)]">
-            Recent Submissions
+            {t('Recent Submissions')}
           </h2>
 
           {submissions.length === 0 ? (
             <div className="py-12 text-center text-sm text-[var(--text-secondary)]">
-              No submissions yet.
+              {t('No submissions yet.')}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-sm">
                 <thead>
                   <tr className="border-b border-[var(--surface-border)] text-xs text-[var(--text-tertiary)]">
-                    <th className="py-2.5 pr-4">Challenge</th>
-                    <th className="py-2.5 px-3">Language</th>
-                    <th className="py-2.5 px-3">Verdict</th>
-                    <th className="py-2.5 pl-3 text-right font-mono">Tests</th>
-                    <th className="py-2.5 pl-3 text-right font-mono">Runtime</th>
+                    <th className="py-2.5 pr-4">{t('Challenge')}</th>
+                    <th className="py-2.5 px-3">{t('Language')}</th>
+                    <th className="py-2.5 px-3">{t('Verdict')}</th>
+                    <th className="py-2.5 pl-3 text-right font-mono">{t('Tests')}</th>
+                    <th className="py-2.5 pl-3 text-right font-mono">{t('Runtime')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--surface-border)]">

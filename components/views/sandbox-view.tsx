@@ -19,6 +19,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useFirebase } from '../providers/firebase-provider';
+import { useI18n } from '@/lib/i18n';
 import { executeCodeSuite } from '@/lib/code-runner';
 import type {
   DiscussionComment,
@@ -49,11 +50,12 @@ const MONACO_LANGUAGE: Record<Language, string> = {
 };
 
 function StatusBadge({ status }: { status: SubmissionStatus | 'Running' }) {
+  const { t } = useI18n();
   if (status === 'Running') {
     return (
       <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--status-info)]">
         <Loader2 className="w-4 h-4 animate-spin" />
-        <span>Running</span>
+        <span>{t('Running')}</span>
       </span>
     );
   }
@@ -61,7 +63,7 @@ function StatusBadge({ status }: { status: SubmissionStatus | 'Running' }) {
     return (
       <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--status-success)]">
         <CheckCircle2 className="w-4 h-4" />
-        <span>Accepted</span>
+        <span>{t('Accepted')}</span>
       </span>
     );
   }
@@ -69,7 +71,7 @@ function StatusBadge({ status }: { status: SubmissionStatus | 'Running' }) {
     return (
       <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--status-warning)]">
         <Clock className="w-4 h-4" />
-        <span>Time Limit Exceeded</span>
+        <span>{t('Time Limit Exceeded')}</span>
       </span>
     );
   }
@@ -92,8 +94,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
     postDiscussion,
     toggleMentorAnnotation,
   } = useFirebase();
-
-  // Resizable split ratio (left rail percentage 30-55)
+  const { t } = useI18n();
   const [splitPct, setSplitPct] = useState<number>(() => {
     if (typeof window === 'undefined') return 40;
     try {
@@ -247,7 +248,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
 
       if (mode === 'submit' && summary.engine !== 'unavailable') {
         if (!user) {
-          setSaveMessage('Sign in to save submissions, XP, and daily streaks.');
+          setSaveMessage(t('Sign in to save submissions, XP, and daily streaks.'));
         } else {
           const { xpAwarded, syncedToCloud } = await recordSubmission({
             problem,
@@ -263,11 +264,13 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
             setSaveMessage(
               xpAwarded > 0
                 ? `Saved submission (+${xpAwarded} XP awarded).`
-                : 'Submission recorded to your profile history.'
+                : t('Submission recorded to your profile history.')
             );
           } else {
             setSaveMessage(
-              'Executed locally. Admin curriculum sync is required to persist cloud submissions for starter problems.'
+              t(
+                'Executed locally. Admin curriculum sync is required to persist cloud submissions for starter problems.'
+              )
             );
           }
         }
@@ -306,7 +309,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
       setCommentCode('');
       setCommentLang('none');
     } catch (err) {
-      setCommentError(err instanceof Error ? err.message : 'Unable to post comment.');
+      setCommentError(err instanceof Error ? err.message : t('Unable to post comment.'));
     } finally {
       setPostingComment(false);
     }
@@ -320,10 +323,10 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
       <div className="flex items-center gap-1 px-3 py-2 border-b border-[var(--surface-border)] bg-[var(--surface-overlay)]/40 overflow-x-auto shrink-0">
         {(
           [
-            { id: 'description', label: 'Description' },
-            { id: 'think', label: 'Think Check' },
-            { id: 'editorial', label: 'Editorial' },
-            { id: 'discussion', label: `Mentor Discussion (${comments.length})` },
+            { id: 'description', label: t('Description') },
+            { id: 'think', label: t('Think Check') },
+            { id: 'editorial', label: t('Editorial') },
+            { id: 'discussion', label: t('Mentor Discussion ({count})', { count: comments.length }) },
           ] as { id: LeftTab; label: string }[]
         ).map((tab) => (
           <button
@@ -350,20 +353,20 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-[var(--text-primary)]">Examples</h3>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">{t('Examples')}</h3>
               {problem.examples.map((ex, i) => (
                 <div
                   key={i}
                   className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] p-3.5 space-y-2 text-xs font-mono"
                 >
                   <div>
-                    <span className="text-[var(--text-tertiary)]">Input:</span>
+                    <span className="text-[var(--text-tertiary)]">{t('Input:')}</span>
                     <pre className="mt-1 text-[var(--text-primary)] whitespace-pre-wrap">
                       {ex.input}
                     </pre>
                   </div>
                   <div>
-                    <span className="text-[var(--text-tertiary)]">Output:</span>
+                    <span className="text-[var(--text-tertiary)]">{t('Output:')}</span>
                     <pre className="mt-1 text-[var(--brand-primary)] whitespace-pre-wrap">
                       {ex.output}
                     </pre>
@@ -378,7 +381,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
             </div>
 
             <div className="space-y-1.5">
-              <h3 className="text-sm font-semibold text-[var(--text-primary)]">Constraints</h3>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">{t('Constraints')}</h3>
               <pre className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] p-3 text-xs font-mono text-[var(--text-secondary)] whitespace-pre-wrap">
                 {problem.constraints}
               </pre>
@@ -390,7 +393,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
           <div className="space-y-5">
             <div className="flex items-center gap-2 text-xs font-mono text-[var(--accent-cyan)]">
               <Brain className="w-4 h-4" />
-              <span>Think Before You Run (+15 XP)</span>
+              <span>{t('Think Before You Run (+15 XP)')}</span>
             </div>
 
             <h3 className="text-base font-semibold text-[var(--text-primary)] leading-snug">
@@ -401,7 +404,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
               {problem.thinkPrompt.codeSnippet}
             </pre>
 
-            <div className="space-y-2" role="radiogroup" aria-label="Prediction choices">
+            <div className="space-y-2" role="radiogroup" aria-label={t('Prediction choices')}>
               {problem.thinkPrompt.options.map((opt, idx) => {
                 const chosen = effectiveSelected === idx;
                 return (
@@ -432,14 +435,14 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
               onClick={() => void handleVerifyThink()}
               className="min-h-[40px] px-4 py-2 rounded-lg text-sm font-semibold bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] disabled:opacity-50 transition-colors"
             >
-              Verify prediction
+              {t('Verify prediction')}
             </button>
 
             {effectiveThinkFeedback === 'correct' && (
               <div className="rounded-lg border border-[var(--status-success)]/40 bg-[var(--surface-deep)] p-4 space-y-1.5">
                 <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--status-success)]">
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Trace verified</span>
+                  <span>{t('Trace verified')}</span>
                 </p>
                 <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                   {problem.thinkPrompt.explanation}
@@ -451,10 +454,12 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
               <div className="rounded-lg border border-[var(--status-error)]/40 bg-[var(--surface-deep)] p-4 space-y-1">
                 <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--status-error)]">
                   <XCircle className="w-4 h-4" />
-                  <span>Trace again</span>
+                  <span>{t('Trace again')}</span>
                 </p>
                 <p className="text-xs text-[var(--text-secondary)]">
-                  Walk through each variable binding line by line before selecting another answer.
+                  {t(
+                    'Walk through each variable binding line by line before selecting another answer.'
+                  )}
                 </p>
               </div>
             )}
@@ -464,7 +469,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
         {leftTab === 'editorial' && (
           <div className="space-y-4">
             <p className="text-xs font-mono text-[var(--text-tertiary)]">
-              Official Academy Editorial
+              {t('Official Academy Editorial')}
             </p>
             <div className="prose prose-sm prose-invert max-w-none text-[var(--text-secondary)] prose-headings:text-[var(--text-primary)] prose-code:text-[var(--accent-cyan)]">
               <Markdown>{problem.editorial}</Markdown>
@@ -476,10 +481,12 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
           <div className="space-y-5">
             <div className="space-y-1">
               <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-                Ask a Human Mentor
+                {t('Ask a Human Mentor')}
               </h3>
               <p className="text-xs text-[var(--text-secondary)]">
-                Share your reasoning or snippet. Academy mentors and peers review questions directly.
+                {t(
+                  'Share your reasoning or snippet. Academy mentors and peers review questions directly.'
+                )}
               </p>
             </div>
 
@@ -490,31 +497,31 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
                 onChange={(e) => setCommentBody(e.target.value)}
                 placeholder={
                   user
-                    ? 'Explain where your trace diverges or share an optimization idea...'
-                    : 'Sign in at the top right to post a question...'
+                    ? t('Explain where your trace diverges or share an optimization idea...')
+                    : t('Sign in at the top right to post a question...')
                 }
                 disabled={!user || postingComment}
                 className="w-full rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] p-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)]"
               />
               <div className="flex flex-col sm:flex-row gap-2">
                 <select
-                  aria-label="Snippet language"
+                  aria-label={t('Snippet language')}
                   value={commentLang}
                   onChange={(e) => setCommentLang(e.target.value as Language | 'none')}
                   disabled={!user || postingComment}
                   className="min-h-[36px] px-2.5 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-xs text-[var(--text-primary)]"
                 >
-                  <option value="none">No code snippet</option>
-                  <option value="python">Python snippet</option>
-                  <option value="javascript">JavaScript snippet</option>
-                  <option value="cpp">C++ snippet</option>
+                  <option value="none">{t('No code snippet')}</option>
+                  <option value="python">{t('Python snippet')}</option>
+                  <option value="javascript">{t('JavaScript snippet')}</option>
+                  <option value="cpp">{t('C++ snippet')}</option>
                 </select>
                 {commentLang !== 'none' && (
                   <input
                     type="text"
                     value={commentCode}
                     onChange={(e) => setCommentCode(e.target.value)}
-                    placeholder="Paste optional short snippet..."
+                    placeholder={t('Paste optional short snippet...')}
                     disabled={!user || postingComment}
                     className="flex-1 min-h-[36px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-xs font-mono text-[var(--text-primary)]"
                   />
@@ -525,7 +532,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
                   className="min-h-[36px] inline-flex items-center justify-center gap-1.5 px-4 rounded-lg text-xs font-semibold bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] disabled:opacity-50 whitespace-nowrap"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>{postingComment ? 'Posting...' : 'Post'}</span>
+                  <span>{postingComment ? t('Posting...') : t('Post')}</span>
                 </button>
               </div>
               {commentError && (
@@ -537,7 +544,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
               {comments.length === 0 ? (
                 <div className="py-8 text-center text-xs text-[var(--text-tertiary)]">
                   <MessageSquare className="w-5 h-5 mx-auto mb-2 opacity-60" />
-                  <p>No questions posted yet. Start the discussion above.</p>
+                  <p>{t('No questions posted yet. Start the discussion above.')}</p>
                 </div>
               ) : (
                 comments.map((c) => (
@@ -550,13 +557,13 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
                         {(c.isMentorAnswer || c.authorRole !== 'learner') && (
                           <span className="inline-flex items-center gap-1 font-mono text-[var(--brand-primary)]">
                             <ShieldCheck className="w-3.5 h-3.5" />
-                            <span>Mentor</span>
+                            <span>{t('Mentor')}</span>
                           </span>
                         )}
                         {c.isPinned && (
                           <span className="inline-flex items-center gap-1 font-mono text-[var(--accent-cyan)]">
                             <Pin className="w-3 h-3" />
-                            <span>Pinned</span>
+                            <span>{t('Pinned')}</span>
                           </span>
                         )}
                       </div>
@@ -568,7 +575,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
                             onClick={() => void toggleMentorAnnotation(problem.id, c, 'isPinned')}
                             className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                           >
-                            {c.isPinned ? 'Unpin' : 'Pin'}
+                            {c.isPinned ? t('Unpin') : t('Pin')}
                           </button>
                           <button
                             type="button"
@@ -577,7 +584,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
                             }
                             className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                           >
-                            {c.isMentorAnswer ? 'Unmark mentor' : 'Mark mentor'}
+                            {c.isMentorAnswer ? t('Unmark mentor') : t('Mark mentor')}
                           </button>
                         </div>
                       )}
@@ -608,7 +615,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2 border-b border-[var(--surface-border)] bg-[var(--surface-overlay)]/40 shrink-0">
         <div className="flex items-center gap-2">
           <label className="sr-only" htmlFor="sandbox-lang-select">
-            Programming language
+            {t('Programming language')}
           </label>
           <select
             id="sandbox-lang-select"
@@ -626,11 +633,11 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
           <button
             type="button"
             onClick={handleResetCode}
-            aria-label="Reset starter code"
+            aria-label={t('Reset starter code')}
             className="min-h-[34px] inline-flex items-center gap-1.5 px-2.5 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-raised)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] whitespace-nowrap"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>Reset</span>
+            <span>{t('Reset')}</span>
           </button>
         </div>
 
@@ -642,7 +649,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
             className="min-h-[34px] inline-flex items-center gap-1.5 px-3.5 rounded-lg text-xs font-medium border border-[var(--surface-border)] bg-[var(--surface-raised)] text-[var(--text-primary)] hover:border-[var(--text-tertiary)] disabled:opacity-50 whitespace-nowrap"
           >
             <Play className="w-3.5 h-3.5" />
-            <span>{isRunning && runMode === 'sample' ? 'Running...' : 'Run code'}</span>
+            <span>{isRunning && runMode === 'sample' ? t('Running...') : t('Run code')}</span>
           </button>
 
           <button
@@ -651,7 +658,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
             onClick={() => void handleExecute('submit')}
             className="min-h-[34px] inline-flex items-center gap-1.5 px-4 rounded-lg text-xs font-semibold bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] disabled:opacity-50 whitespace-nowrap"
           >
-            <span>{isRunning && runMode === 'submit' ? 'Submitting...' : 'Submit solution'}</span>
+            <span>{isRunning && runMode === 'submit' ? t('Submitting...') : t('Submit solution')}</span>
           </button>
         </div>
       </div>
@@ -686,7 +693,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold text-[var(--text-primary)]">Test Output</span>
+          <span className="text-xs font-semibold text-[var(--text-primary)]">{t('Test Output')}</span>
           {isRunning && <StatusBadge status="Running" />}
           {!isRunning && execSummary && <StatusBadge status={execSummary.status} />}
         </div>
@@ -694,19 +701,22 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
         {!isRunning && execSummary && (
           <div className="flex items-center gap-3 text-xs font-mono tabular-nums text-[var(--text-tertiary)]">
             <span>
-              {execSummary.passedCount}/{execSummary.totalCount} passed
+              {t('{passed}/{total} passed', {
+                passed: execSummary.passedCount,
+                total: execSummary.totalCount,
+              })}
             </span>
             <span aria-hidden="true">·</span>
-            <span>{execSummary.runtimeMs} ms</span>
+            <span>{t('{ms} ms', { ms: execSummary.runtimeMs })}</span>
             <span aria-hidden="true">·</span>
             <span>
               {execSummary.engine === 'piston'
-                ? 'Piston'
+                ? t('Piston')
                 : execSummary.engine === 'local-js-worker'
-                  ? 'Local JS'
+                  ? t('Local JS')
                   : execSummary.engine === 'local-pyodide-worker'
-                    ? 'Local Python'
-                    : 'Config needed'}
+                    ? t('Local Python')
+                    : t('Config needed')}
             </span>
           </div>
         )}
@@ -725,7 +735,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
 
       {!execSummary && !isRunning && (
         <p className="text-xs text-[var(--text-tertiary)]">
-          Run code to check visible sample cases, or Submit solution to evaluate hidden edge cases.
+          {t('Run code to check visible sample cases, or Submit solution to evaluate hidden edge cases.')}
         </p>
       )}
 
@@ -748,7 +758,11 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
                 ) : (
                   <XCircle className="w-3 h-3 text-[var(--status-error)]" />
                 )}
-                <span>{r.isHidden ? `Hidden ${idx + 1}` : `Case ${idx + 1}`}</span>
+                <span>
+                  {r.isHidden
+                    ? t('Hidden {index}', { index: idx + 1 })
+                    : t('Case {index}', { index: idx + 1 })}
+                </span>
               </button>
             ))}
           </div>
@@ -756,20 +770,20 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
           {execSummary.results[activeTestIdx] && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs font-mono">
               <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] p-2.5">
-                <span className="text-[var(--text-tertiary)]">Input</span>
+                <span className="text-[var(--text-tertiary)]">{t('Input')}</span>
                 <pre className="mt-1 text-[var(--text-primary)] whitespace-pre-wrap">
                   {execSummary.results[activeTestIdx].input}
                 </pre>
               </div>
               <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] p-2.5">
-                <span className="text-[var(--text-tertiary)]">Expected</span>
+                <span className="text-[var(--text-tertiary)]">{t('Expected')}</span>
                 <pre className="mt-1 text-[var(--text-primary)] whitespace-pre-wrap">
                   {execSummary.results[activeTestIdx].expectedOutput}
                 </pre>
               </div>
               <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] p-2.5">
                 <span className="text-[var(--text-tertiary)]">
-                  {execSummary.results[activeTestIdx].stderr ? 'Error' : 'Actual Output'}
+                  {execSummary.results[activeTestIdx].stderr ? t('Error') : t('Actual Output')}
                 </span>
                 <pre
                   className={`mt-1 whitespace-pre-wrap ${
@@ -780,7 +794,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
                 >
                   {execSummary.results[activeTestIdx].stderr ||
                     execSummary.results[activeTestIdx].actualOutput ||
-                    '(empty)'}
+                    t('(empty)')}
                 </pre>
               </div>
             </div>
@@ -801,7 +815,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
             className="min-h-[34px] inline-flex items-center gap-1.5 px-2.5 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-overlay)] text-xs font-medium text-[var(--text-primary)] hover:border-[var(--text-tertiary)] whitespace-nowrap"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Challenges</span>
+            <span>{t('Challenges')}</span>
           </button>
 
           <h1 className="text-base sm:text-lg font-bold text-[var(--text-primary)] truncate">
@@ -810,7 +824,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
         </div>
 
         <div className="flex items-center gap-3 text-xs font-mono text-[var(--text-tertiary)] shrink-0">
-          <span className="capitalize">{problem.difficulty}</span>
+          <span className="capitalize">{t(problem.difficulty)}</span>
           <span aria-hidden="true">·</span>
           <span>{problem.xpReward} XP</span>
           {problemSolved && (
@@ -818,7 +832,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
               <span aria-hidden="true">·</span>
               <span className="inline-flex items-center gap-1 text-[var(--status-success)] font-semibold">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Accepted</span>
+                <span>{t('Accepted')}</span>
               </span>
             </>
           )}
@@ -838,7 +852,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
                 : 'text-[var(--text-secondary)] bg-[var(--surface-overlay)]'
             }`}
           >
-            {pane}
+            {t(pane === 'problem' ? 'Problem' : pane === 'editor' ? 'Editor' : 'Tests')}
           </button>
         ))}
       </div>
@@ -863,7 +877,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
         <div
           role="separator"
           aria-orientation="vertical"
-          aria-label="Resize problem and editor panels"
+          aria-label={t('Resize problem and editor panels')}
           aria-valuenow={splitPct}
           aria-valuemin={30}
           aria-valuemax={55}

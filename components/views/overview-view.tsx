@@ -14,6 +14,7 @@ import {
 import { motion } from 'motion/react';
 import { useFirebase } from '../providers/firebase-provider';
 import { useIsClient } from '@/hooks/use-is-client';
+import { useI18n } from '@/lib/i18n';
 import type { NavSection } from '../app-shell';
 
 interface OverviewViewProps {
@@ -54,9 +55,10 @@ function ProgressRing({ pct, accent = false }: { pct: number; accent?: boolean }
 export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
   const { problems, tracks, workshops, leaderboard, publicProfile, userPrivate } = useFirebase();
   const isClient = useIsClient();
+  const { t, locale } = useI18n();
 
   const dailyProblem = problems.find((p) => p.isDaily) || problems[0];
-  const upcomingWorkshop = workshops.find((w) => w.isUpcoming) || workshops[0];
+  const upcomingWorkshop = workshops.find((w) => w.isUpcoming);
 
   const totalModules = tracks.reduce((acc, t) => acc + t.modules.length, 0);
   const completedModules = userPrivate?.completedModuleIds.length || 0;
@@ -72,7 +74,7 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
     : false;
 
   const localWorkshopDate = upcomingWorkshop
-    ? new Intl.DateTimeFormat(isClient ? undefined : 'en-US', {
+    ? new Intl.DateTimeFormat(isClient ? locale : 'en-US', {
         weekday: 'short',
         month: 'short',
         day: 'numeric',
@@ -95,9 +97,11 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
           <div className="lg:col-span-7 p-6 lg:p-8 flex flex-col justify-between gap-6">
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-[var(--text-tertiary)]">
-                <span className="text-[var(--brand-primary)] font-semibold">Daily Challenge</span>
+                <span className="text-[var(--brand-primary)] font-semibold">
+                  {t('Daily Challenge')}
+                </span>
                 <span aria-hidden="true">·</span>
-                <span className="capitalize">{dailyProblem.difficulty}</span>
+                <span className="capitalize">{t(dailyProblem.difficulty)}</span>
                 <span aria-hidden="true">·</span>
                 <span>{dailyProblem.xpReward} XP</span>
               </div>
@@ -107,7 +111,7 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
               </h1>
 
               <p className="max-w-lg text-sm text-[var(--text-secondary)]">
-                Read the statement, predict the trace, then implement it in the workspace.
+                {t('Read the statement, predict the trace, then implement it in the workspace.')}
               </p>
             </div>
 
@@ -117,7 +121,7 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
                 onClick={() => onOpenProblem(dailyProblem.id)}
                 className="min-h-[44px] inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 transition-colors whitespace-nowrap"
               >
-                <span>Open workspace</span>
+                <span>{t('Open workspace')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
               <button
@@ -125,13 +129,13 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
                 onClick={() => onNavigate('challenges')}
                 className="min-h-[44px] px-4 py-2.5 rounded-lg text-sm font-medium border border-[var(--surface-border)] bg-[var(--surface-overlay)] text-[var(--text-primary)] hover:border-[var(--text-tertiary)] transition-colors whitespace-nowrap"
               >
-                All challenges
+                {t('All challenges')}
               </button>
             </div>
           </div>
 
           <div className="lg:col-span-5 border-t lg:border-t-0 lg:border-l border-[var(--surface-border)] bg-[var(--surface-deep)]/40 p-6 lg:p-8">
-            <p className="text-xs font-mono text-[var(--text-tertiary)]">Today&apos;s flow</p>
+            <p className="text-xs font-mono text-[var(--text-tertiary)]">{t("Today's flow")}</p>
             <ol className="mt-4 space-y-4">
               <li className="flex items-start gap-3">
                 {thinkDone ? (
@@ -140,9 +144,11 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
                   <Brain className="mt-0.5 h-4 w-4 shrink-0 text-[var(--text-tertiary)]" />
                 )}
                 <div>
-                  <p className="text-sm font-medium text-[var(--text-primary)]">Trace check</p>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">{t('Trace check')}</p>
                   <p className="text-xs text-[var(--text-secondary)]">
-                    {thinkDone ? 'Passed. The reasoning is saved.' : 'Predict the output before running.'}
+                    {thinkDone
+                      ? t('Passed. The reasoning is saved.')
+                      : t('Predict the output before running.')}
                   </p>
                 </div>
               </li>
@@ -153,18 +159,22 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
                   <Code2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--text-tertiary)]" />
                 )}
                 <div>
-                  <p className="text-sm font-medium text-[var(--text-primary)]">Implement and submit</p>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">
+                    {t('Implement and submit')}
+                  </p>
                   <p className="text-xs text-[var(--text-secondary)]">
-                    {dailySolved ? 'Accepted. Nice work.' : 'Not submitted yet.'}
+                    {dailySolved ? t('Accepted. Nice work.') : t('Not submitted yet.')}
                   </p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-[var(--text-tertiary)]" />
                 <div>
-                  <p className="text-sm font-medium text-[var(--text-primary)]">Review the editorial</p>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">
+                    {t('Review the editorial')}
+                  </p>
                   <p className="text-xs text-[var(--text-secondary)]">
-                    Compare your approach after a real attempt.
+                    {t('Compare your approach after a real attempt.')}
                   </p>
                 </div>
               </li>
@@ -174,10 +184,10 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
       )}
 
       {/* 4-Column Visual KPI Strip */}
-      <section aria-label="Academy progress summary" className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <section aria-label={t('Progress')} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-4 flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs text-[var(--text-tertiary)]">Total XP</p>
+            <p className="text-xs text-[var(--text-tertiary)]">{t('Total XP')}</p>
             <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-[var(--text-primary)]">
               {publicProfile?.xp ?? 0}
             </p>
@@ -187,7 +197,7 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
 
         <div className="rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-4 flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs text-[var(--text-tertiary)]">Streak</p>
+            <p className="text-xs text-[var(--text-tertiary)]">{t('Streak')}</p>
             <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-[var(--brand-primary)]">
               {publicProfile?.currentStreak ?? 0}d
             </p>
@@ -197,7 +207,7 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
 
         <div className="rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-4 flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs text-[var(--text-tertiary)]">Solved</p>
+            <p className="text-xs text-[var(--text-tertiary)]">{t('Solved')}</p>
             <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-[var(--text-primary)]">
               {solvedTotal}/{problems.length}
             </p>
@@ -207,7 +217,7 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
 
         <div className="rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-4 flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs text-[var(--text-tertiary)]">Modules</p>
+            <p className="text-xs text-[var(--text-tertiary)]">{t('Modules')}</p>
             <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-[var(--text-primary)]">
               {completedModules}/{totalModules}
             </p>
@@ -221,13 +231,13 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
         {/* Track Progress Visual Bars */}
         <section className="lg:col-span-7 rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-6 space-y-5">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-base font-semibold text-[var(--text-primary)]">Tracks</h2>
+            <h2 className="text-base font-semibold text-[var(--text-primary)]">{t('Tracks')}</h2>
             <button
               type="button"
               onClick={() => onNavigate('syllabus')}
               className="text-xs font-medium text-[var(--accent-cyan)] hover:underline whitespace-nowrap"
             >
-              Open syllabus
+              {t('Open syllabus')}
             </button>
           </div>
 
@@ -274,9 +284,11 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
               <div className="flex items-center justify-between gap-3 text-xs font-mono text-[var(--text-secondary)]">
                 <span className="inline-flex items-center gap-1.5 text-[var(--accent-cyan)]">
                   <Calendar className="w-3.5 h-3.5" />
-                  <span>Workshop {upcomingWorkshop.issueNumber}</span>
+                  <span>{t('Workshop {issue}', { issue: upcomingWorkshop.issueNumber })}</span>
                 </span>
-                <span className="text-right">Your time · {localWorkshopDate}</span>
+                <span className="text-right">
+                  {t('Your time · {date}', { date: localWorkshopDate })}
+                </span>
               </div>
 
               <h2 className="text-base font-semibold text-[var(--text-primary)]">
@@ -292,26 +304,26 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
                 onClick={() => onNavigate('workshops')}
                 className="min-h-[36px] px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[var(--surface-overlay)] border border-[var(--surface-border)] text-[var(--text-primary)] hover:border-[var(--text-tertiary)] whitespace-nowrap"
               >
-                View workshop & RSVP
+                {t('View workshop & RSVP')}
               </button>
             </section>
           )}
 
           <section className="rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-5 space-y-3">
             <div className="flex items-center justify-between gap-4">
-              <h2 className="text-sm font-semibold text-[var(--text-primary)]">Top Members</h2>
+              <h2 className="text-sm font-semibold text-[var(--text-primary)]">{t('Top Members')}</h2>
               <button
                 type="button"
                 onClick={() => onNavigate('leaderboard')}
                 className="text-xs font-medium text-[var(--accent-cyan)] hover:underline whitespace-nowrap"
               >
-                Rankings
+                {t('Rankings')}
               </button>
             </div>
 
             {leaderboard.length === 0 ? (
               <p className="py-4 text-xs text-[var(--text-tertiary)]">
-                No ranked members yet.
+                {t('No ranked members yet.')}
               </p>
             ) : (
               <div className="divide-y divide-[var(--surface-border)]">

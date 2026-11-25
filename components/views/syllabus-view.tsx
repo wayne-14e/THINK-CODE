@@ -5,6 +5,7 @@ import Markdown from 'react-markdown';
 import { CheckCircle2, ChevronDown, ChevronUp, Clock, Code2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useFirebase } from '../providers/firebase-provider';
+import { useI18n } from '@/lib/i18n';
 
 interface SyllabusViewProps {
   onOpenProblem: (problemId: string) => void;
@@ -12,6 +13,7 @@ interface SyllabusViewProps {
 
 export function SyllabusView({ onOpenProblem }: SyllabusViewProps) {
   const { tracks, userPrivate, user, completeModule } = useFirebase();
+  const { t } = useI18n();
   const [selectedTrackId, setSelectedTrackId] = useState<string>(tracks[0]?.id || '');
   const [expandedModuleId, setExpandedModuleId] = useState<string | null>(null);
   const [busyModuleId, setBusyModuleId] = useState<string | null>(null);
@@ -34,7 +36,7 @@ export function SyllabusView({ onOpenProblem }: SyllabusViewProps) {
 
   const handleComplete = async (moduleId: string, xpReward: number) => {
     if (!user) {
-      setNotice('Sign in to save progress.');
+      setNotice(t('Sign in to save progress.'));
       return;
     }
     setNotice(null);
@@ -54,7 +56,7 @@ export function SyllabusView({ onOpenProblem }: SyllabusViewProps) {
       className="p-4 sm:p-6 lg:p-8 space-y-6"
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">Syllabus</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">{t('Syllabus')}</h1>
 
         <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] w-fit max-w-full">
           {tracks.map((track) => {
@@ -93,7 +95,7 @@ export function SyllabusView({ onOpenProblem }: SyllabusViewProps) {
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-5">
               <div className="space-y-1.5 max-w-2xl">
                 <p className="text-xs font-mono text-[var(--brand-primary)]">
-                  Track 0{activeTrack.order}
+                  {t('Track {order}', { order: `0${activeTrack.order}` })}
                 </p>
                 <h2 className="text-xl font-bold text-[var(--text-primary)]">
                   {activeTrack.title}
@@ -103,17 +105,17 @@ export function SyllabusView({ onOpenProblem }: SyllabusViewProps) {
 
               <div className="flex items-center gap-6 font-mono tabular-nums shrink-0">
                 <div>
-                  <p className="text-xs text-[var(--text-tertiary)]">Modules</p>
+                  <p className="text-xs text-[var(--text-tertiary)]">{t('Modules')}</p>
                   <p className="mt-1 text-lg font-bold text-[var(--text-primary)]">
                     {activeTrack.modules.length}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[var(--text-tertiary)]">XP</p>
+                  <p className="text-xs text-[var(--text-tertiary)]">{t('XP')}</p>
                   <p className="mt-1 text-lg font-bold text-[var(--text-primary)]">{trackXp}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-[var(--text-tertiary)]">Reading</p>
+                  <p className="text-xs text-[var(--text-tertiary)]">{t('Reading')}</p>
                   <p className="mt-1 text-lg font-bold text-[var(--text-primary)]">
                     {trackMinutes}m
                   </p>
@@ -123,9 +125,13 @@ export function SyllabusView({ onOpenProblem }: SyllabusViewProps) {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs font-mono tabular-nums text-[var(--text-tertiary)]">
-                <span>Progress</span>
+                <span>{t('Progress')}</span>
                 <span className="text-[var(--text-primary)]">
-                  {completedInTrack}/{activeTrack.modules.length} ({trackPct}%)
+                  {t('{done}/{total} ({pct}%)', {
+                    done: completedInTrack,
+                    total: activeTrack.modules.length,
+                    pct: trackPct,
+                  })}
                 </span>
               </div>
               <div className="h-2 rounded-full bg-[var(--surface-overlay)] overflow-hidden">
@@ -170,7 +176,7 @@ export function SyllabusView({ onOpenProblem }: SyllabusViewProps) {
                               <span aria-hidden="true">·</span>
                               <span className="inline-flex items-center gap-1 text-[var(--status-success)] font-semibold">
                                 <CheckCircle2 className="w-3.5 h-3.5" />
-                                <span>Done</span>
+                                <span>{t('Done')}</span>
                               </span>
                             </>
                           )}
@@ -184,7 +190,7 @@ export function SyllabusView({ onOpenProblem }: SyllabusViewProps) {
                         onClick={() => setExpandedModuleId(expanded ? null : mod.id)}
                         className="min-h-[38px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--surface-border)] bg-[var(--surface-overlay)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors whitespace-nowrap"
                       >
-                        <span>{expanded ? 'Hide notes' : 'Notes'}</span>
+                        <span>{expanded ? t('Hide notes') : t('Notes')}</span>
                         {expanded ? (
                           <ChevronUp className="w-3.5 h-3.5" />
                         ) : (
@@ -202,7 +208,7 @@ export function SyllabusView({ onOpenProblem }: SyllabusViewProps) {
                             : 'border-[var(--surface-border)] bg-[var(--surface-overlay)] text-[var(--text-primary)] hover:border-[var(--text-tertiary)]'
                         }`}
                       >
-                        {completed ? 'Completed' : isBusy ? 'Saving...' : 'Mark done'}
+                        {completed ? t('Completed') : isBusy ? t('Saving...') : t('Mark done')}
                       </button>
 
                       <button
@@ -211,7 +217,7 @@ export function SyllabusView({ onOpenProblem }: SyllabusViewProps) {
                         className="min-h-[38px] inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] transition-colors whitespace-nowrap"
                       >
                         <Code2 className="w-3.5 h-3.5" />
-                        <span>Solve</span>
+                        <span>{t('Solve')}</span>
                       </button>
                     </div>
                   </div>

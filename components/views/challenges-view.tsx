@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { Check, CheckCircle2, Circle, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useFirebase } from '../providers/firebase-provider';
+import { useI18n } from '@/lib/i18n';
 import type { Difficulty } from '@/lib/types';
 
 interface ChallengesViewProps {
@@ -24,6 +25,7 @@ const DIFFICULTY_BAR: Record<Difficulty, string> = {
 
 export function ChallengesView({ onOpenProblem }: ChallengesViewProps) {
   const { problems, tracks, userPrivate } = useFirebase();
+  const { t } = useI18n();
   const [difficultyFilter, setDifficultyFilter] = useState<'all' | Difficulty>('all');
   const [trackFilter, setTrackFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,7 +66,9 @@ export function ChallengesView({ onOpenProblem }: ChallengesViewProps) {
       className="p-4 sm:p-6 lg:p-8 space-y-6"
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">Challenges</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
+          {t('Challenges')}
+        </h1>
         <span className="font-mono text-xs text-[var(--text-tertiary)]">
           Python · JavaScript · C++
         </span>
@@ -88,7 +92,7 @@ export function ChallengesView({ onOpenProblem }: ChallengesViewProps) {
           >
             <div className="flex items-center justify-between text-xs font-mono">
               <span className={`inline-flex items-center gap-1 capitalize font-semibold ${DIFFICULTY_TEXT[stat.level]}`}>
-                <span>{stat.level}</span>
+                <span>{t(stat.level)}</span>
                 {difficultyFilter === stat.level && <Check className="w-3 h-3" aria-hidden="true" />}
               </span>
               <span className="tabular-nums text-[var(--text-secondary)]">
@@ -114,12 +118,12 @@ export function ChallengesView({ onOpenProblem }: ChallengesViewProps) {
               onClick={() => setDifficultyFilter('all')}
               className="min-h-[40px] px-3 py-1.5 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-overlay)] text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors whitespace-nowrap"
             >
-              All difficulties
+              {t('All difficulties')}
             </button>
           )}
 
           <label className="sr-only" htmlFor="track-filter-select">
-            Filter by track
+            {t('Filter by track')}
           </label>
           <select
             id="track-filter-select"
@@ -127,7 +131,7 @@ export function ChallengesView({ onOpenProblem }: ChallengesViewProps) {
             onChange={(e) => setTrackFilter(e.target.value)}
             className="min-h-[40px] px-3 py-1.5 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-raised)] text-sm text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)]"
           >
-            <option value="all">All tracks</option>
+            <option value="all">{t('All tracks')}</option>
             {tracks.map((t) => (
               <option key={t.slug} value={t.slug}>
                 {t.title}
@@ -142,8 +146,8 @@ export function ChallengesView({ onOpenProblem }: ChallengesViewProps) {
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search..."
-            aria-label="Search challenges"
+            placeholder={t('Search...')}
+            aria-label={t('Search challenges')}
             className="w-full min-h-[40px] pl-9 pr-3 py-1.5 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-raised)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)]"
           />
         </div>
@@ -155,19 +159,19 @@ export function ChallengesView({ onOpenProblem }: ChallengesViewProps) {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-[var(--surface-border)] text-xs font-medium text-[var(--text-tertiary)] bg-[var(--surface-overlay)]/50">
-                <th className="py-3 px-4 w-12">Status</th>
-                <th className="py-3 px-4">Challenge</th>
-                <th className="py-3 px-4 hidden sm:table-cell">Track</th>
-                <th className="py-3 px-4">Difficulty</th>
-                <th className="py-3 px-4 text-right font-mono">XP</th>
-                <th className="py-3 px-4 text-right">Action</th>
+                <th className="py-3 px-4 w-12">{t('Status')}</th>
+                <th className="py-3 px-4">{t('Challenge')}</th>
+                <th className="py-3 px-4 hidden sm:table-cell">{t('Track')}</th>
+                <th className="py-3 px-4">{t('Difficulty')}</th>
+                <th className="py-3 px-4 text-right font-mono">{t('XP')}</th>
+                <th className="py-3 px-4 text-right">{t('Action')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--surface-border)] text-sm">
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-10 px-4 text-center text-[var(--text-secondary)]">
-                    No matching challenges.
+                    {t('No matching challenges.')}
                   </td>
                 </tr>
               ) : (
@@ -185,12 +189,12 @@ export function ChallengesView({ onOpenProblem }: ChallengesViewProps) {
                         {solved ? (
                           <CheckCircle2
                             className="w-4 h-4 text-[var(--status-success)]"
-                            aria-label="Accepted"
+                            aria-label={t('Accepted')}
                           />
                         ) : (
                           <Circle
                             className="w-4 h-4 text-[var(--surface-border)]"
-                            aria-label="Unsolved"
+                            aria-label={t('Unsolved')}
                           />
                         )}
                       </td>
@@ -205,12 +209,12 @@ export function ChallengesView({ onOpenProblem }: ChallengesViewProps) {
                           </button>
                           {problem.isDaily && (
                             <span className="font-mono text-xs text-[var(--brand-primary)]">
-                              · Daily
+                              · {t('Daily')}
                             </span>
                           )}
                           {thinkPassed && (
                             <span className="font-mono text-xs text-[var(--text-tertiary)]">
-                              · Trace
+                              · {t('Trace')}
                             </span>
                           )}
                         </div>
@@ -224,7 +228,7 @@ export function ChallengesView({ onOpenProblem }: ChallengesViewProps) {
                             DIFFICULTY_TEXT[problem.difficulty]
                           }`}
                         >
-                          {problem.difficulty}
+                          {t(problem.difficulty)}
                         </span>
                       </td>
                       <td className="py-2.5 px-4 text-right font-mono text-xs tabular-nums text-[var(--text-secondary)]">
@@ -239,7 +243,7 @@ export function ChallengesView({ onOpenProblem }: ChallengesViewProps) {
                           }}
                           className="min-h-[32px] px-3 py-1 rounded-lg text-xs font-medium border border-[var(--surface-border)] bg-[var(--surface-overlay)] text-[var(--text-primary)] hover:border-[var(--text-tertiary)] whitespace-nowrap"
                         >
-                          Solve
+                          {t('Solve')}
                         </button>
                       </td>
                     </tr>

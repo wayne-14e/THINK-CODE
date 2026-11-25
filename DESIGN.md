@@ -60,16 +60,18 @@ Interface text and headings use **Inter**. **JetBrains Mono** is reserved for co
 - Use monospace for code, concise technical labels, and tabular metrics—not for long reading passages.
 - Format numbers consistently where they are compared in columns.
 - Write in a friendly, technically confident voice: direct, warm, and peer-to-peer rather than institutional or preachy.
-- The product is intended to support English and Russian. Current UI copy is English; do not imply localization is already available.
+- The interface supports an English/Russian toggle for UI chrome and primary screens, with English as the default. Authored learning content, problem statements, editorials, and workshop copy remain English until they are deliberately localized; do not imply that all content is translated.
 - Describe the AI position positively: independent reasoning, useful hints, human mentorship, and eventually a guided tutor. Avoid “AI is bad” claims or language that shames learners.
 
 ## 4. Symbols, icons, and artwork
 
 Use simple Lucide icons or small text/code symbols to bring in the pixel-and-byte character. Examples include `</>`, `{}`, `$_`, `//`, and `0x`. Use these as brief visual accents—not as fake terminal content or substitutes for labels.
 
-**Illustrations are limited to the public landing page and a workshop card.** The current implementation keeps them on the landing page and the upcoming workshop card. The owner plans to provide replacement artwork for those locations. Do not create or add new illustrations. For other screens—including Overview and Syllabus—use a simple icon, typographic symbol, or clean space.
+**Illustrations are limited to the public landing page and a workshop card.** Do not create or add new illustrations. For other screens—including Overview and Syllabus—use a simple icon, typographic symbol, or clean space.
 
-Keep existing artwork in the allowed locations only until owner-provided replacements are available. The brand logo is not treated as an illustration.
+- Owner-provided artwork lives in `public/images/` and is referenced by absolute path, for example `/images/illustration-hero.png`.
+- Keep illustration filenames descriptive and kebab-case. Do not import images from `src/` or add an image loader for local artwork.
+- The brand logo is not treated as an illustration; it lives at `public/assets/logo.svg`.
 
 ## 5. Layout and interaction
 
@@ -90,7 +92,8 @@ Keep existing artwork in the allowed locations only until owner-provided replace
 - **Status:** concise label plus an icon where useful; keep success, warning, and error meanings consistent.
 - **Progress and rankings:** clear numbers and simple bars/rings; avoid turning every metric into a badge or decorative widget.
 - **Member identity:** use one platform username as the primary identity. Stack, tags, XP, badges, and learning stats support it; avoid presenting multiple external handles as competing names.
-- **Feedback and voting:** use plain language and explain what the action does. A dislike on an upcoming workshop topic requires the member to enter a suggested topic.
+- **Feedback and voting:** use plain language and explain what the action does. A dislike on an upcoming workshop topic requires the member to enter a suggested topic. Show aggregate counts without exposing account email.
+- **Community links:** render Telegram, Discord, and feedback links only when the owner configures them. Never substitute an invented destination.
 
 ## 7. Practical quality bar
 

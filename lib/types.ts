@@ -14,6 +14,11 @@ export interface PublicProfile {
   avatarInitials: string;
   githubHandle?: string;
   telegramHandle?: string;
+  stack?: string[];
+  tags?: string[];
+  badges?: string[];
+  completedTrackSlugs?: string[];
+  weeklyXpWeek?: string;
   xp: number;
   weeklyXp: number;
   currentStreak: number;
@@ -137,6 +142,7 @@ export interface WorkshopResources {
   repoUrl?: string;
   notebookUrl?: string;
   problemSetUrl?: string;
+  replayUrl?: string;
 }
 
 export interface Workshop {
@@ -150,6 +156,7 @@ export interface Workshop {
   prerequisites: string;
   locationUrl: string;
   isUpcoming: boolean;
+  agenda?: string[];
   resources: WorkshopResources;
   createdAt?: unknown;
   updatedAt?: unknown;
@@ -159,6 +166,14 @@ export interface WorkshopRsvp {
   uid: string;
   nickname: string;
   rsvpedAt?: unknown;
+}
+
+export interface WorkshopTopicFeedback {
+  uid: string;
+  nickname: string;
+  works: boolean;
+  suggestion: string;
+  updatedAt?: unknown;
 }
 
 export interface TestCaseExecutionResult {

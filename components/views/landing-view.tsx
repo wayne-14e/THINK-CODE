@@ -7,15 +7,19 @@ import { motion } from 'motion/react';
 import { useFirebase } from '../providers/firebase-provider';
 import { useIsClient } from '@/hooks/use-is-client';
 import { AuthModal } from '../auth-modal';
+import { CommunityLinks } from '../community-links';
+import { LanguageToggle } from '../language-toggle';
+import { useI18n } from '@/lib/i18n';
 
 export function LandingView() {
   const { tracks, problems, workshops } = useFirebase();
   const isClient = useIsClient();
+  const { t, locale } = useI18n();
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const featuredProblem = problems.find((p) => p.isDaily) || problems[0];
-  const upcomingWorkshop = workshops.find((w) => w.isUpcoming) || workshops[0];
+  const upcomingWorkshop = workshops.find((w) => w.isUpcoming);
 
   const [demoSelected, setDemoSelected] = useState<number | null>(null);
   const [demoChecked, setDemoChecked] = useState(false);
@@ -26,7 +30,7 @@ export function LandingView() {
       : false;
 
   const workshopDateLabel = upcomingWorkshop
-    ? new Intl.DateTimeFormat(isClient ? undefined : 'en-US', {
+    ? new Intl.DateTimeFormat(isClient ? locale : 'en-US', {
         weekday: 'short',
         month: 'short',
         day: 'numeric',
@@ -46,48 +50,51 @@ export function LandingView() {
             className="inline-flex items-center gap-2.5 font-mono text-base font-bold tracking-tight text-[var(--text-primary)] whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 rounded"
           >
             <Image
-              src="/assets/aistudio/logo.svg"
-              alt="THINK//CODE logo"
+              src="/assets/logo.svg"
+              alt={t('Brand logo')}
               width={36}
               height={22}
               referrerPolicy="no-referrer"
               className="h-6 w-auto shrink-0"
               priority
             />
-            <span>THINK//CODE</span>
+            <span>
+              THINK<span className="text-[var(--brand-primary)]">{'//'}</span>CODE
+            </span>
           </a>
 
           <nav
-            aria-label="Community sections"
+            aria-label={t('Community')}
             className="hidden md:flex items-center gap-8 text-sm font-medium text-[var(--text-secondary)]"
           >
             <a
               href="#craft"
               className="hover:text-[var(--text-primary)] transition-colors whitespace-nowrap shrink-0"
             >
-              Practice
+              {t('Practice')}
             </a>
             <a
               href="#tracks"
               className="hover:text-[var(--text-primary)] transition-colors whitespace-nowrap shrink-0"
             >
-              Tracks
+              {t('Tracks')}
             </a>
             <a
               href="#workshops"
               className="hover:text-[var(--text-primary)] transition-colors whitespace-nowrap shrink-0"
             >
-              Workshops
+              {t('Workshops')}
             </a>
           </nav>
 
           <div className="flex items-center gap-2.5 shrink-0">
+            <LanguageToggle compact />
             <button
               type="button"
               onClick={() => setAuthModalOpen(true)}
               className="min-h-[40px] px-4 py-2 rounded-lg text-sm font-semibold tracking-tight bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 transition-colors whitespace-nowrap shrink-0"
             >
-              Sign in
+              {t('Sign in')}
             </button>
           </div>
         </div>
@@ -104,20 +111,20 @@ export function LandingView() {
           >
             <div className="max-w-3xl mx-auto text-center space-y-5">
               <p className="text-xs font-mono text-[var(--brand-primary)]">
-                Competitive Programming <span aria-hidden="true">·</span> Human Mentors
+                {t('Competitive Programming · Human Mentors')}
               </p>
 
               <h1
                 className="font-bold tracking-tight text-[var(--text-primary)] leading-[1.06]"
                 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)' }}
               >
-                Think first.{' '}
-                <span className="text-[var(--brand-primary)]">Code deeper.</span>
+                {t('Think first. Code deeper.')}
               </h1>
 
               <p className="text-base sm:text-lg text-[var(--text-secondary)] max-w-xl mx-auto">
-                Build algorithmic confidence through deliberate practice, real mentors, and a
-                community that codes together.
+                {t(
+                  'Build algorithmic confidence through deliberate practice, real mentors, and a community that codes together.'
+                )}
               </p>
 
               <div className="pt-2">
@@ -126,7 +133,7 @@ export function LandingView() {
                   onClick={() => setAuthModalOpen(true)}
                   className="min-h-[46px] inline-flex items-center gap-2 px-7 py-3 rounded-lg text-sm font-semibold tracking-tight bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 transition-colors whitespace-nowrap"
                 >
-                  <span>Start practicing</span>
+                  <span>{t('Start practicing')}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -143,9 +150,12 @@ export function LandingView() {
                 className="object-contain p-4 sm:p-8"
               />
               <div className="absolute bottom-5 left-6 right-6 flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-[var(--text-secondary)]">
-                <span>Python · JavaScript · C++</span>
+                <span>{t('Python · JavaScript · C++')}</span>
                 <span className="text-[var(--accent-cyan)]">
-                  {tracks.length} Tracks · {problems.length} Challenges
+                  {t('{tracks} Tracks · {problems} Challenges', {
+                    tracks: tracks.length,
+                    problems: problems.length,
+                  })}
                 </span>
               </div>
             </div>
@@ -166,10 +176,10 @@ export function LandingView() {
               />
               <div className="absolute bottom-6 left-6 right-6 space-y-1.5">
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
-                  Think before you run.
+                  {t('Think before you run.')}
                 </h2>
                 <p className="text-sm text-[var(--text-secondary)]">
-                  Work through the state before you touch the keyboard.
+                  {t('Work through the state before you touch the keyboard.')}
                 </p>
               </div>
             </div>
@@ -181,7 +191,7 @@ export function LandingView() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between text-xs font-mono text-[var(--text-tertiary)]">
                       <span className="text-[var(--accent-cyan)] font-semibold">
-                        Live Trace Check
+                        {t('Live Trace Check')}
                       </span>
                       <span>{featuredProblem.title}</span>
                     </div>
@@ -222,7 +232,7 @@ export function LandingView() {
                       onClick={() => setDemoChecked(true)}
                       className="min-h-[40px] px-4 py-2 rounded-lg text-xs font-semibold tracking-tight bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] disabled:opacity-40 transition-colors whitespace-nowrap"
                     >
-                      Verify trace
+                      {t('Verify trace')}
                     </button>
 
                     {demoChecked && demoSelected !== null && (
@@ -236,12 +246,12 @@ export function LandingView() {
                         {demoIsCorrect ? (
                           <>
                             <CheckCircle2 className="w-4 h-4" />
-                            <span>Trace verified</span>
+                            <span>{t('Trace verified')}</span>
                           </>
                         ) : (
                           <>
                             <XCircle className="w-4 h-4" />
-                            <span>Trace it line by line</span>
+                            <span>{t('Trace it line by line')}</span>
                           </>
                         )}
                       </span>
@@ -267,7 +277,7 @@ export function LandingView() {
                 />
                 <div className="absolute bottom-6 left-6 right-6">
                   <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">
-                    Four core tracks.
+                    {t('Four core tracks.')}
                   </h2>
                 </div>
               </div>
@@ -299,7 +309,7 @@ export function LandingView() {
                         ))}
                       </div>
                       <p className="text-xs font-mono tabular-nums text-[var(--text-tertiary)]">
-                        {track.modules.length} modules
+                        {t('{count} modules', { count: track.modules.length })}
                       </p>
                     </div>
                   </button>
@@ -310,53 +320,59 @@ export function LandingView() {
         </section>
 
         {/* Section 4: Live Workshop Visual Showcase */}
-        <section id="workshops" className="px-4 sm:px-6 lg:px-10 pt-6 pb-20">
-          <div className="mx-auto max-w-[1280px]">
-            <div className="ambient-card ambient-card--cyan rounded-2xl overflow-hidden border border-[var(--surface-border)] bg-[var(--surface-raised)] grid grid-cols-1 lg:grid-cols-12 items-stretch">
-              <div className="lg:col-span-5 relative min-h-[240px]">
-                <Image
-                  src="/images/illustration-hero.png"
-                  alt="Code editor illustration representing a live workshop"
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 40vw"
-                  className="object-contain p-6 sm:p-8"
-                />
-              </div>
-
-              <div className="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-between gap-6">
-                <div className="space-y-2 max-w-xl">
-                  <p className="inline-flex items-center gap-2 text-xs font-mono text-[var(--accent-cyan)]">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span>
-                      Live Workshop · {upcomingWorkshop?.issueNumber} · {workshopDateLabel}
-                    </span>
-                  </p>
-                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
-                    {upcomingWorkshop?.title || 'Live Problem Breakdown'}
-                  </h2>
-                  <p className="text-sm text-[var(--text-secondary)]">
-                    Live problem breakdowns, real mentors, and room for your questions.
-                  </p>
+        {upcomingWorkshop && (
+          <section id="workshops" className="px-4 sm:px-6 lg:px-10 pt-6 pb-20">
+            <div className="mx-auto max-w-[1280px]">
+              <div className="ambient-card ambient-card--cyan rounded-2xl overflow-hidden border border-[var(--surface-border)] bg-[var(--surface-raised)] grid grid-cols-1 lg:grid-cols-12 items-stretch">
+                <div className="lg:col-span-5 relative min-h-[240px]">
+                  <Image
+                    src="/images/illustration-hero.png"
+                    alt={t('Live Problem Breakdown')}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 40vw"
+                    className="object-contain p-6 sm:p-8"
+                  />
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setAuthModalOpen(true)}
-                  className="min-h-[44px] inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold tracking-tight bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] transition-colors whitespace-nowrap shrink-0 self-start"
-                >
-                  <span>Join with Google or GitHub</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                <div className="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-between gap-6">
+                  <div className="space-y-2 max-w-xl">
+                    <p className="inline-flex items-center gap-2 text-xs font-mono text-[var(--accent-cyan)]">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>
+                        {t('Live Workshop · {issue} · {date}', {
+                          issue: upcomingWorkshop.issueNumber,
+                          date: workshopDateLabel,
+                        })}
+                      </span>
+                    </p>
+                    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+                      {upcomingWorkshop.title}
+                    </h2>
+                    <p className="text-sm text-[var(--text-secondary)]">
+                      {t('Live problem breakdowns, real mentors, and room for your questions.')}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setAuthModalOpen(true)}
+                    className="min-h-[44px] inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold tracking-tight bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] transition-colors whitespace-nowrap shrink-0 self-start"
+                  >
+                    <span>{t('Join with Google or GitHub')}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
 
       <footer className="border-t border-[var(--surface-border)] bg-[var(--surface-raised)] px-4 sm:px-6 lg:px-10 py-6">
-        <div className="mx-auto max-w-[1280px] flex items-center justify-between gap-4 text-xs text-[var(--text-tertiary)]">
+        <div className="mx-auto max-w-[1280px] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[var(--text-tertiary)]">
           <span className="font-mono font-bold text-[var(--text-primary)]">THINK//CODE</span>
-          <span>Think. Code. Repeat.</span>
+          <CommunityLinks variant="footer" />
+          <span>{t('Think. Code. Repeat.')}</span>
         </div>
       </footer>
 

@@ -4,25 +4,29 @@ import React, { useMemo, useState } from 'react';
 import { Flame, Search, ShieldCheck, Trophy } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useFirebase } from '../providers/firebase-provider';
+import { MemberProfileModal } from '../member-profile-modal';
+import { useI18n } from '@/lib/i18n';
+import type { PublicProfile } from '@/lib/types';
+import { effectiveWeeklyXp } from '@/lib/week';
 
 export function LeaderboardView() {
-  const { leaderboard, user } = useFirebase();
+  const { leaderboard, user, tracks } = useFirebase();
+  const { t } = useI18n();
   const [period, setPeriod] = useState<'weekly' | 'alltime'>('weekly');
   const [search, setSearch] = useState('');
+  const [selectedMember, setSelectedMember] = useState<PublicProfile | null>(null);
+
+  const scoreOf = (member: PublicProfile) =>
+    period === 'weekly' ? effectiveWeeklyXp(member) : member.xp;
 
   const sortedAll = useMemo(
-    () =>
-      [...leaderboard].sort((a, b) =>
-        period === 'weekly' ? b.weeklyXp - a.weeklyXp : b.xp - a.xp
-      ),
+    () => [...leaderboard].sort((a, b) => scoreOf(b) - scoreOf(a)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [leaderboard, period]
   );
 
   const topThree = sortedAll.slice(0, 3);
-  const topXp = Math.max(
-    1,
-    ...(topThree.map((m) => (period === 'weekly' ? m.weeklyXp : m.xp)) || [1])
-  );
+  const topXp = Math.max(1, ...(topThree.map(scoreOf) || [1]));
 
   const ranked = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -39,7 +43,9 @@ export function LeaderboardView() {
       className="p-4 sm:p-6 lg:p-8 space-y-6"
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">Leaderboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
+          {t('Leaderboard')}
+        </h1>
 
         <div className="flex items-center gap-1 p-1 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-raised)] w-fit">
           <button
@@ -51,7 +57,7 @@ export function LeaderboardView() {
                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
-            Weekly
+            {t('Weekly')}
           </button>
           <button
             type="button"
@@ -62,7 +68,7 @@ export function LeaderboardView() {
                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
-            All-Time
+            {t('All-Time')}
           </button>
         </div>
       </div>
@@ -71,12 +77,14 @@ export function LeaderboardView() {
       {topThree.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {topThree.map((member, idx) => {
-            const val = period === 'weekly' ? member.weeklyXp : member.xp;
+            const val = scoreOf(member);
             const pct = Math.max(12, Math.round((val / topXp) * 100));
             return (
-              <div
+              <button
+                type="button"
                 key={member.uid}
-                className="rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-5 space-y-3"
+                onClick={() => setSelectedMember(member)}
+                className="text-left rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-5 space-y-3 hover:border-[var(--text-tertiary)] transition-colors focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-xs text-[var(--text-tertiary)]">#{idx + 1}</span>
@@ -100,7 +108,7 @@ export function LeaderboardView() {
                     style={{ width: `${pct}%`, opacity: idx === 0 ? 1 : 0.65 }}
                   />
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -113,8 +121,8 @@ export function LeaderboardView() {
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Find member..."
-            aria-label="Filter leaderboard by nickname"
+            placeholder={t('Find member...')}
+            aria-label={t('Filter leaderboard by nickname')}
             className="w-full min-h-[40px] pl-9 pr-3 py-1.5 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-raised)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)]"
           />
         </div>
@@ -125,12 +133,14 @@ export function LeaderboardView() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-[var(--surface-border)] text-xs font-medium text-[var(--text-tertiary)] bg-[var(--surface-overlay)]/50">
-                <th className="py-3 px-4 w-16 font-mono">Rank</th>
-                <th className="py-3 px-4">Member</th>
-                <th className="py-3 px-4 text-right font-mono">Streak</th>
-                <th className="py-3 px-4 text-right font-mono hidden sm:table-cell">E / M / H</th>
+                <th className="py-3 px-4 w-16 font-mono">{t('Rank')}</th>
+                <th className="py-3 px-4">{t('Member')}</th>
+                <th className="py-3 px-4 text-right font-mono">{t('Streak')}</th>
+                <th className="py-3 px-4 text-right font-mono hidden sm:table-cell">
+                  {t('E / M / H')}
+                </th>
                 <th className="py-3 px-4 text-right font-mono">
-                  {period === 'weekly' ? 'Weekly XP' : 'Total XP'}
+                  {period === 'weekly' ? t('Weekly XP') : t('Total XP')}
                 </th>
               </tr>
             </thead>
@@ -138,7 +148,9 @@ export function LeaderboardView() {
               {ranked.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-10 px-4 text-center text-[var(--text-secondary)]">
-                    {leaderboard.length === 0 ? 'No ranked members yet.' : 'No matching members.'}
+                    {leaderboard.length === 0
+                      ? t('No ranked members yet.')
+                      : t('No matching members.')}
                   </td>
                 </tr>
               ) : (
@@ -147,33 +159,41 @@ export function LeaderboardView() {
                   return (
                     <tr
                       key={member.uid}
-                      className={`h-11 ${
+                      className={`h-11 cursor-pointer ${
                         isSelf ? 'bg-[var(--surface-overlay)]' : 'hover:bg-[var(--surface-overlay)]/50'
                       }`}
+                      onClick={() => setSelectedMember(member)}
                     >
                       <td className="py-2.5 px-4 font-mono text-xs tabular-nums text-[var(--text-tertiary)]">
                         #{rank}
                       </td>
                       <td className="py-2.5 px-4">
-                        <div className="flex items-center gap-2.5">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setSelectedMember(member);
+                          }}
+                          className="flex items-center gap-2.5 text-left focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)] focus-visible:outline-offset-2 rounded"
+                        >
                           <span className="font-mono text-xs text-[var(--brand-primary)] w-6">
                             {member.avatarInitials}
                           </span>
-                          <span className="font-medium text-[var(--text-primary)]">
+                          <span className="font-medium text-[var(--text-primary)] hover:underline">
                             {member.nickname}
                           </span>
                           {(member.role === 'admin' || member.role === 'mentor') && (
                             <span className="inline-flex items-center gap-1 text-xs font-mono text-[var(--accent-cyan)]">
                               <ShieldCheck className="w-3.5 h-3.5" />
-                              <span>Mentor</span>
+                              <span>{t('Mentor')}</span>
                             </span>
                           )}
                           {isSelf && (
                             <span className="text-xs font-mono text-[var(--brand-primary)]">
-                              · You
+                              · {t('You')}
                             </span>
                           )}
-                        </div>
+                        </button>
                       </td>
                       <td className="py-2.5 px-4 text-right font-mono text-xs tabular-nums text-[var(--text-secondary)]">
                         <span className="inline-flex items-center justify-end gap-1">
@@ -185,7 +205,7 @@ export function LeaderboardView() {
                         {member.solvedEasy} / {member.solvedMedium} / {member.solvedHard}
                       </td>
                       <td className="py-2.5 px-4 text-right font-mono text-xs font-semibold tabular-nums text-[var(--brand-primary)]">
-                        {period === 'weekly' ? member.weeklyXp : member.xp}
+                        {scoreOf(member)}
                       </td>
                     </tr>
                   );
@@ -195,6 +215,12 @@ export function LeaderboardView() {
           </table>
         </div>
       </div>
+
+      <MemberProfileModal
+        profile={selectedMember}
+        tracks={tracks}
+        onClose={() => setSelectedMember(null)}
+      />
     </motion.div>
   );
 }

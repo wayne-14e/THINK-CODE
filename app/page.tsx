@@ -12,6 +12,7 @@ import { WorkshopsView } from '@/components/views/workshops-view';
 import { LeaderboardView } from '@/components/views/leaderboard-view';
 import { ProfileView } from '@/components/views/profile-view';
 import { AdminComposerView } from '@/components/views/admin-composer-view';
+import { useI18n } from '@/lib/i18n';
 
 function AuthenticatedWorkspace() {
   const { problems } = useFirebase();
@@ -60,11 +61,12 @@ function AuthenticatedWorkspace() {
 
 export default function HomePage() {
   const { user, authReady } = useFirebase();
+  const { t } = useI18n();
 
   if (!authReady) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--surface-deep)] text-[var(--text-secondary)]">
-        <span className="font-mono text-sm">Loading THINK//CODE...</span>
+        <span className="font-mono text-sm">{t('Loading THINK//CODE...')}</span>
       </div>
     );
   }

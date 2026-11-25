@@ -56,7 +56,10 @@ import type {
   UserPrivate,
   Workshop,
   WorkshopRsvp,
+  WorkshopTopicFeedback,
 } from '@/lib/types';
+import { getIsoWeekKey, isCurrentWeek } from '@/lib/week';
+import { BADGE_CATALOG } from '@/lib/badges';
 
 interface FirebaseContextValue {
   user: User | null;
@@ -80,9 +83,16 @@ interface FirebaseContextValue {
     nickname: string;
     githubHandle: string;
     telegramHandle: string;
+    stack: string[];
+    tags: string[];
   }) => Promise<void>;
   completeModule: (moduleId: string, xpReward: number) => Promise<void>;
   markThinkPassed: (problemId: string) => Promise<void>;
+  awardMember: (payload: {
+    uid: string;
+    xpDelta: number;
+    badgeIds: string[];
+  }) => Promise<void>;
   recordSubmission: (payload: {
     problem: Problem;
     language: Language;
@@ -114,6 +124,15 @@ interface FirebaseContextValue {
     onChange: (items: WorkshopRsvp[]) => void
   ) => () => void;
   toggleWorkshopRsvp: (workshopId: string, currentlyRsvped: boolean) => Promise<void>;
+  subscribeWorkshopTopicFeedback: (
+    workshopId: string,
+    onChange: (items: WorkshopTopicFeedback[]) => void
+  ) => () => void;
+  submitWorkshopTopicFeedback: (
+    workshopId: string,
+    works: boolean,
+    suggestion: string
+  ) => Promise<void>;
   saveAdminProblem: (problem: Omit<Problem, 'createdAt' | 'updatedAt' | 'createdByUid'>) => Promise<void>;
   saveAdminWorkshop: (workshop: Omit<Workshop, 'createdAt' | 'updatedAt'>) => Promise<void>;
   syncStarterCurriculum: () => Promise<void>;
@@ -144,6 +163,20 @@ function sanitizeNickname(raw: string | null | undefined, email: string | null |
   return base.length >= 2 ? base : `${base}_dev`;
 }
 
+function cleanStringList(values: string[] | undefined, maxItems = 5): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const value of values || []) {
+    const clean = value.trim().replace(/\s+/g, ' ').slice(0, 32);
+    const key = clean.toLowerCase();
+    if (!clean || seen.has(key)) continue;
+    seen.add(key);
+    result.push(clean);
+    if (result.length >= maxItems) break;
+  }
+  return result;
+}
+
 export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
@@ -159,6 +192,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   const [cloudProfiles, setCloudProfiles] = useState<PublicProfile[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const seededOnceRef = useRef(false);
+  const weekMaintenanceRef = useRef<string>('');
 
   useEffect(() => {
     void testConnection();
@@ -181,6 +215,11 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
           avatarInitials: computeInitials(nickname),
           githubHandle: '',
           telegramHandle: '',
+          stack: [],
+          tags: [],
+          badges: [],
+          completedTrackSlugs: [],
+          weeklyXpWeek: getIsoWeekKey(),
           xp: 0,
           weeklyXp: 0,
           currentStreak: 0,
@@ -354,6 +393,28 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
     };
   }, [authReady, user]);
 
+  // Migrate the weekly XP window without touching all-time XP. Existing
+  // profiles receive a current week key; stale windows reset to zero.
+  useEffect(() => {
+    if (!user || !publicProfile) return;
+    const currentWeek = getIsoWeekKey();
+    if (publicProfile.weeklyXpWeek === currentWeek) return;
+
+    const maintenanceKey = `${user.uid}:${currentWeek}`;
+    if (weekMaintenanceRef.current === maintenanceKey) return;
+    weekMaintenanceRef.current = maintenanceKey;
+
+    const payload = {
+      weeklyXpWeek: currentWeek,
+      updatedAt: serverTimestamp(),
+      ...(publicProfile.weeklyXpWeek ? { weeklyXp: 0 } : {}),
+    };
+
+    void updateDoc(doc(db, 'publicProfiles', user.uid), payload).catch((err) => {
+      console.warn('Weekly XP migration skipped:', err instanceof Error ? err.message : err);
+    });
+  }, [user, publicProfile]);
+
   const syncStarterCurriculum = useCallback(async () => {
     if (!user || !isAdmin) return;
     try {
@@ -427,6 +488,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
             prerequisites: ws.prerequisites,
             locationUrl: ws.locationUrl,
             isUpcoming: ws.isUpcoming,
+            agenda: ws.agenda || [],
             resources: ws.resources,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
@@ -502,16 +564,30 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
     for (const w of SEED_WORKSHOPS) {
       if (w.isUpcoming) map.set(w.id, w);
     }
+    // Include archived workshops too; the workshop view separates upcoming
+    // sessions from the archive instead of hiding past sessions entirely.
     for (const w of cloudWorkshops) {
-      if (w.isUpcoming) {
-        map.set(w.id, w);
-      } else {
-        map.delete(w.id);
+      map.set(w.id, w);
+    }
+    // If an admin has published a newer upcoming session, keep the seeded
+    // session in the archive instead of showing two "upcoming" cards.
+    const cloudIds = new Set(cloudWorkshops.map((w) => w.id));
+    const hasCloudUpcoming = cloudWorkshops.some((w) => w.isUpcoming);
+    if (hasCloudUpcoming) {
+      for (const [id, w] of map) {
+        if (!cloudIds.has(id) && w.isUpcoming) {
+          map.set(id, { ...w, isUpcoming: false });
+        }
       }
     }
-    return Array.from(map.values()).sort(
-      (a, b) => Number(b.issueNumber) - Number(a.issueNumber)
-    );
+    return Array.from(map.values()).sort((a, b) => {
+      const aTime = new Date(a.startsAtIso).getTime();
+      const bTime = new Date(b.startsAtIso).getTime();
+      if (Number.isFinite(aTime) && Number.isFinite(bTime) && aTime !== bTime) {
+        return bTime - aTime;
+      }
+      return Number(b.issueNumber) - Number(a.issueNumber);
+    });
   }, [cloudWorkshops]);
 
   const leaderboard = useMemo(() => {
@@ -612,6 +688,8 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
     nickname: string;
     githubHandle: string;
     telegramHandle: string;
+    stack: string[];
+    tags: string[];
   }) => {
     if (!user || !publicProfile) return;
     const cleanNick = data.nickname.trim().slice(0, 40);
@@ -624,6 +702,8 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
         avatarInitials: computeInitials(cleanNick),
         githubHandle: data.githubHandle.trim().replace(/^@/, '').slice(0, 40),
         telegramHandle: data.telegramHandle.trim().replace(/^@/, '').slice(0, 40),
+        stack: cleanStringList(data.stack, 5),
+        tags: cleanStringList(data.tags, 5),
         updatedAt: serverTimestamp(),
       });
     } catch (err) {
@@ -636,15 +716,29 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
     if (userPrivate.completedModuleIds.includes(moduleId)) return;
 
     const cappedXp = Math.min(Math.max(0, Math.round(xpReward)), 200);
+    const nextCompletedModuleIds = [...userPrivate.completedModuleIds, moduleId];
+    const completedTrackSlugs = tracks
+      .filter((track) =>
+        track.modules.length > 0 &&
+        track.modules.every((module) => nextCompletedModuleIds.includes(module.id))
+      )
+      .map((track) => track.slug);
+    const currentWeek = getIsoWeekKey();
+    const nextWeeklyXp = isCurrentWeek(publicProfile.weeklyXpWeek)
+      ? publicProfile.weeklyXp + cappedXp
+      : cappedXp;
+
     try {
       await updateDoc(doc(db, 'usersPrivate', user.uid), {
-        completedModuleIds: [...userPrivate.completedModuleIds, moduleId],
+        completedModuleIds: nextCompletedModuleIds,
         updatedAt: serverTimestamp(),
       });
       await updateDoc(doc(db, 'publicProfiles', user.uid), {
         xp: publicProfile.xp + cappedXp,
-        weeklyXp: publicProfile.weeklyXp + cappedXp,
-        completedModulesCount: publicProfile.completedModulesCount + 1,
+        weeklyXp: nextWeeklyXp,
+        weeklyXpWeek: currentWeek,
+        completedModulesCount: nextCompletedModuleIds.length,
+        completedTrackSlugs,
         updatedAt: serverTimestamp(),
       });
     } catch (err) {
@@ -656,6 +750,11 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
     if (!user || !publicProfile || !userPrivate) return;
     if (userPrivate.thinkPassedProblemIds.includes(problemId)) return;
 
+    const currentWeek = getIsoWeekKey();
+    const nextWeeklyXp = isCurrentWeek(publicProfile.weeklyXpWeek)
+      ? publicProfile.weeklyXp + 15
+      : 15;
+
     try {
       await updateDoc(doc(db, 'usersPrivate', user.uid), {
         thinkPassedProblemIds: [...userPrivate.thinkPassedProblemIds, problemId],
@@ -663,7 +762,8 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
       });
       await updateDoc(doc(db, 'publicProfiles', user.uid), {
         xp: publicProfile.xp + 15,
-        weeklyXp: publicProfile.weeklyXp + 15,
+        weeklyXp: nextWeeklyXp,
+        weeklyXpWeek: currentWeek,
         updatedAt: serverTimestamp(),
       });
     } catch (err) {
@@ -746,10 +846,15 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
           hard: 'solvedHard',
         };
         const targetDiffField = diffField[problem.difficulty];
+        const currentWeek = getIsoWeekKey();
+        const nextWeeklyXp = isCurrentWeek(publicProfile.weeklyXpWeek)
+          ? publicProfile.weeklyXp + xpAwarded
+          : xpAwarded;
 
         await updateDoc(doc(db, 'publicProfiles', user.uid), {
           xp: publicProfile.xp + xpAwarded,
-          weeklyXp: publicProfile.weeklyXp + xpAwarded,
+          weeklyXp: nextWeeklyXp,
+          weeklyXpWeek: currentWeek,
           currentStreak: nextStreak,
           longestStreak: nextLongest,
           [targetDiffField]: alreadySolved
@@ -761,6 +866,50 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
       return { xpAwarded, syncedToCloud: true };
     } catch (err) {
       handleFirestoreError(err, OperationType.WRITE, `usersPrivate/${user.uid}/submissions`);
+    }
+  };
+
+  const awardMember = async ({
+    uid,
+    xpDelta,
+    badgeIds,
+  }: {
+    uid: string;
+    xpDelta: number;
+    badgeIds: string[];
+  }) => {
+    if (!user || !isAdmin) {
+      throw new Error('Admin permissions required.');
+    }
+    if (!uid) {
+      throw new Error('Select a member first.');
+    }
+    const memberRef = doc(db, 'publicProfiles', uid);
+    const memberSnap = await getDoc(memberRef);
+    if (!memberSnap.exists()) {
+      throw new Error('Member profile not found.');
+    }
+    const member = memberSnap.data() as PublicProfile;
+    const delta = Math.min(500, Math.max(0, Math.round(xpDelta)));
+    const allowedBadgeIds = new Set(BADGE_CATALOG.map((badge) => badge.id));
+    const nextBadges = Array.from(
+      new Set((badgeIds || []).filter((id) => allowedBadgeIds.has(id)))
+    ).slice(0, 10);
+    const currentWeek = getIsoWeekKey();
+    const nextWeeklyXp = isCurrentWeek(member.weeklyXpWeek)
+      ? member.weeklyXp + delta
+      : delta;
+
+    try {
+      await updateDoc(memberRef, {
+        xp: Math.min(1000000, member.xp + delta),
+        weeklyXp: nextWeeklyXp,
+        weeklyXpWeek: currentWeek,
+        badges: nextBadges,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `publicProfiles/${uid}`);
     }
   };
 
@@ -891,6 +1040,59 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const subscribeWorkshopTopicFeedback = useCallback(
+    (workshopId: string, onChange: (items: WorkshopTopicFeedback[]) => void) => {
+      return onSnapshot(
+        collection(db, 'workshops', workshopId, 'topicFeedback'),
+        (snap) => {
+          const items = snap.docs.map((d) => d.data() as WorkshopTopicFeedback);
+          items.sort((a, b) => Number(Boolean(b.works)) - Number(Boolean(a.works)));
+          onChange(items);
+        },
+        () => {
+          onChange([]);
+        }
+      );
+    },
+    []
+  );
+
+  const submitWorkshopTopicFeedback = async (
+    workshopId: string,
+    works: boolean,
+    suggestion: string
+  ) => {
+    if (!user || !publicProfile) {
+      throw new Error('Sign in to share topic feedback.');
+    }
+    if (!firestoreWorkshopIds.has(workshopId)) {
+      throw new Error(
+        'This starter workshop has not been synced to Firestore yet. Ask an admin to run Sync Starter Curriculum in Compose.'
+      );
+    }
+    const cleanSuggestion = suggestion.trim().slice(0, 400);
+    if (!works && cleanSuggestion.length < 2) {
+      throw new Error(
+        'Suggested topic is required when the current topic does not work for you.'
+      );
+    }
+    try {
+      await setDoc(doc(db, 'workshops', workshopId, 'topicFeedback', user.uid), {
+        uid: user.uid,
+        nickname: publicProfile.nickname,
+        works,
+        suggestion: works ? '' : cleanSuggestion,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (err) {
+      handleFirestoreError(
+        err,
+        OperationType.WRITE,
+        `workshops/${workshopId}/topicFeedback/${user.uid}`
+      );
+    }
+  };
+
   const saveAdminProblem = async (
     problem: Omit<Problem, 'createdAt' | 'updatedAt' | 'createdByUid'>
   ) => {
@@ -964,6 +1166,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
           prerequisites: workshop.prerequisites,
           locationUrl: workshop.locationUrl,
           isUpcoming: workshop.isUpcoming,
+          agenda: workshop.agenda || [],
           resources: workshop.resources,
           updatedAt: serverTimestamp(),
         });
@@ -978,6 +1181,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
           prerequisites: workshop.prerequisites,
           locationUrl: workshop.locationUrl,
           isUpcoming: workshop.isUpcoming,
+          agenda: workshop.agenda || [],
           resources: workshop.resources,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
@@ -1011,12 +1215,15 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
         updateProfileDetails,
         completeModule,
         markThinkPassed,
+        awardMember,
         recordSubmission,
         subscribeDiscussions,
         postDiscussion,
         toggleMentorAnnotation,
         subscribeWorkshopRsvps,
         toggleWorkshopRsvp,
+        subscribeWorkshopTopicFeedback,
+        submitWorkshopTopicFeedback,
         saveAdminProblem,
         saveAdminWorkshop,
         syncStarterCurriculum,

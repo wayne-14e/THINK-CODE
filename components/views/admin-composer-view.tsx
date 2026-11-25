@@ -4,18 +4,23 @@ import React, { useState } from 'react';
 import { AlertCircle, CheckCircle2, Database, Plus, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useFirebase } from '../providers/firebase-provider';
+import { useI18n } from '@/lib/i18n';
+import { BADGE_CATALOG } from '@/lib/badges';
 import type { Difficulty, Language, TestCase } from '@/lib/types';
 
 export function AdminComposerView() {
   const {
     isAdmin,
     tracks,
+    leaderboard,
     saveAdminProblem,
     saveAdminWorkshop,
+    awardMember,
     syncStarterCurriculum,
   } = useFirebase();
+  const { t, language } = useI18n();
 
-  const [tab, setTab] = useState<'problem' | 'workshop'>('problem');
+  const [tab, setTab] = useState<'problem' | 'workshop' | 'award'>('problem');
   const [syncing, setSyncing] = useState(false);
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -61,11 +66,20 @@ export function AdminComposerView() {
   const [wsStartsAt, setWsStartsAt] = useState('2026-12-06T16:00:00.000Z');
   const [wsTimezone, setWsTimezone] = useState('21:00 UTC+5');
   const [wsPrereq, setWsPrereq] = useState('');
-  const [wsLocation, setWsLocation] = useState('https://discord.com/channels/@me');
+  const [wsLocation, setWsLocation] = useState('');
   const [wsUpcoming, setWsUpcoming] = useState(true);
   const [wsSlides, setWsSlides] = useState('');
   const [wsRepo, setWsRepo] = useState('');
   const [wsNotebook, setWsNotebook] = useState('');
+  const [wsProblemSet, setWsProblemSet] = useState('');
+  const [wsReplay, setWsReplay] = useState('');
+  const [wsAgenda, setWsAgenda] = useState('');
+
+  // Member Awards State
+  const [awardUid, setAwardUid] = useState('');
+  const [awardXp, setAwardXp] = useState(50);
+  const [awardBadgeIds, setAwardBadgeIds] = useState<string[]>([]);
+  const [awardBusy, setAwardBusy] = useState(false);
 
   const [saving, setSaving] = useState(false);
 
@@ -73,9 +87,9 @@ export function AdminComposerView() {
     return (
       <div className="p-6 lg:p-8">
         <div className="max-w-lg rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-6 space-y-2">
-          <h1 className="text-xl font-bold text-[var(--text-primary)]">Admin Composer</h1>
+          <h1 className="text-xl font-bold text-[var(--text-primary)]">{t('Admin Composer')}</h1>
           <p className="text-sm text-[var(--text-secondary)]">
-            Mentor or Admin permissions are required to publish problems or workshops.
+            {t('Mentor or Admin permissions are required to publish problems or workshops.')}
           </p>
         </div>
       </div>
@@ -180,7 +194,13 @@ export function AdminComposerView() {
           ...(wsSlides.trim() ? { slidesUrl: wsSlides.trim() } : {}),
           ...(wsRepo.trim() ? { repoUrl: wsRepo.trim() } : {}),
           ...(wsNotebook.trim() ? { notebookUrl: wsNotebook.trim() } : {}),
+          ...(wsProblemSet.trim() ? { problemSetUrl: wsProblemSet.trim() } : {}),
+          ...(wsReplay.trim() ? { replayUrl: wsReplay.trim() } : {}),
         },
+        agenda: wsAgenda
+          .split('\n')
+          .map((item) => item.trim())
+          .filter(Boolean),
       });
       setNotice({ ok: true, text: `Published Workshop ${wsIssue}: "${wsTitle}".` });
       setWsTitle('');
@@ -192,6 +212,35 @@ export function AdminComposerView() {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleAwardMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!awardUid) {
+      setNotice({ ok: false, text: t('Select a member first.') });
+      return;
+    }
+    setAwardBusy(true);
+    setNotice(null);
+    try {
+      const member = leaderboard.find((entry) => entry.uid === awardUid);
+      await awardMember({ uid: awardUid, xpDelta: awardXp, badgeIds: awardBadgeIds });
+      setNotice({
+        ok: true,
+        text: t('Awarded {xp} XP and updated badges for {name}.', {
+          xp: awardXp,
+          name: member?.nickname || awardUid,
+        }),
+      });
+      setAwardBadgeIds([]);
+    } catch (err) {
+      setNotice({
+        ok: false,
+        text: err instanceof Error ? err.message : t('Unable to award member.'),
+      });
+    } finally {
+      setAwardBusy(false);
     }
   };
 
@@ -244,7 +293,18 @@ export function AdminComposerView() {
               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           }`}
         >
-          Workshop Publisher
+          {t('Workshop Publisher')}
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab('award')}
+          className={`min-h-[34px] px-4 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            tab === 'award'
+              ? 'bg-[var(--brand-primary)] text-[var(--brand-ink)] font-semibold'
+              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+          }`}
+        >
+          {t('Member Awards')}
         </button>
       </div>
 
@@ -310,9 +370,9 @@ export function AdminComposerView() {
                 onChange={(e) => setProbDifficulty(e.target.value as Difficulty)}
                 className="w-full min-h-[40px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm text-[var(--text-primary)]"
               >
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
+                <option value="easy">{t('Easy')}</option>
+                <option value="medium">{t('Medium')}</option>
+                <option value="hard">{t('Hard')}</option>
               </select>
             </div>
 
@@ -357,7 +417,7 @@ export function AdminComposerView() {
                   onChange={(e) => setProbIsDaily(e.target.checked)}
                   className="w-4 h-4 accent-[var(--brand-primary)]"
                 />
-                <span>Feature as Daily Challenge</span>
+                <span>{t('Feature as Daily Challenge')}</span>
               </label>
             </div>
           </div>
@@ -373,7 +433,7 @@ export function AdminComposerView() {
               rows={4}
               value={probDescription}
               onChange={(e) => setProbDescription(e.target.value)}
-              placeholder="Describe the problem, stdin format, and expected stdout format..."
+              placeholder={t('Describe the problem, stdin format, and expected stdout format...')}
               className="w-full p-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm text-[var(--text-primary)]"
             />
           </div>
@@ -401,7 +461,7 @@ export function AdminComposerView() {
                 rows={2}
                 value={probEditorial}
                 onChange={(e) => setProbEditorial(e.target.value)}
-                placeholder="Explain the key invariant and time/space complexity..."
+                placeholder={t('Explain the key invariant and time/space complexity...')}
                 className="w-full p-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm text-[var(--text-primary)]"
               />
             </div>
@@ -417,7 +477,7 @@ export function AdminComposerView() {
                 type="text"
                 value={thinkQuestion}
                 onChange={(e) => setThinkQuestion(e.target.value)}
-                placeholder="Prediction question (e.g., What does this print?)"
+                placeholder={t('Prediction question (e.g., What does this print?)')}
                 className="min-h-[40px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm text-[var(--text-primary)]"
               />
               <select
@@ -425,16 +485,16 @@ export function AdminComposerView() {
                 onChange={(e) => setThinkLang(e.target.value as Language)}
                 className="min-h-[40px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm text-[var(--text-primary)]"
               >
-                <option value="python">Python snippet</option>
-                <option value="javascript">JavaScript snippet</option>
-                <option value="cpp">C++ snippet</option>
+                <option value="python">{t('Python snippet')}</option>
+                <option value="javascript">{t('JavaScript snippet')}</option>
+                <option value="cpp">{t('C++ snippet')}</option>
               </select>
             </div>
             <textarea
               rows={2}
               value={thinkSnippet}
               onChange={(e) => setThinkSnippet(e.target.value)}
-              placeholder="Short trace snippet..."
+              placeholder={t('Short trace snippet...')}
               className="w-full p-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-xs font-mono text-[var(--text-primary)]"
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -464,7 +524,7 @@ export function AdminComposerView() {
               type="text"
               value={thinkExplanation}
               onChange={(e) => setThinkExplanation(e.target.value)}
-              placeholder="Explanation shown when verified..."
+              placeholder={t('Explanation shown when verified...')}
               className="w-full min-h-[40px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm text-[var(--text-primary)]"
             />
           </div>
@@ -486,7 +546,7 @@ export function AdminComposerView() {
                 className="min-h-[34px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium border border-[var(--surface-border)] bg-[var(--surface-overlay)] text-[var(--text-primary)]"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Add test case</span>
+                <span>{t('Add test case')}</span>
               </button>
             </div>
 
@@ -498,7 +558,7 @@ export function AdminComposerView() {
                 >
                   <textarea
                     rows={2}
-                    placeholder="Stdin input"
+                    placeholder={t('Stdin input')}
                     value={tc.input}
                     onChange={(e) => {
                       const next = [...testCases];
@@ -509,7 +569,7 @@ export function AdminComposerView() {
                   />
                   <textarea
                     rows={2}
-                    placeholder="Expected stdout"
+                    placeholder={t('Expected stdout')}
                     value={tc.expectedOutput}
                     onChange={(e) => {
                       const next = [...testCases];
@@ -528,13 +588,13 @@ export function AdminComposerView() {
                         setTestCases(next);
                       }}
                     />
-                    <span>Hidden</span>
+                    <span>{t('Hidden')}</span>
                   </label>
                   <button
                     type="button"
                     disabled={testCases.length <= 1}
                     onClick={() => setTestCases((prev) => prev.filter((_, i) => i !== idx))}
-                    aria-label="Remove test case"
+                    aria-label={t('Remove test case')}
                     className="md:col-span-1 min-h-[32px] inline-flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--status-error)] disabled:opacity-40"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -546,7 +606,7 @@ export function AdminComposerView() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-[var(--surface-border)]">
             <div className="space-y-1">
-              <label className="text-xs font-mono text-[var(--text-tertiary)]">Python starter</label>
+              <label className="text-xs font-mono text-[var(--text-tertiary)]">{t('Python starter')}</label>
               <textarea
                 rows={4}
                 value={probPyStarter}
@@ -555,7 +615,7 @@ export function AdminComposerView() {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-mono text-[var(--text-tertiary)]">JavaScript starter</label>
+              <label className="text-xs font-mono text-[var(--text-tertiary)]">{t('JavaScript starter')}</label>
               <textarea
                 rows={4}
                 value={probJsStarter}
@@ -564,7 +624,7 @@ export function AdminComposerView() {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-mono text-[var(--text-tertiary)]">C++ starter</label>
+              <label className="text-xs font-mono text-[var(--text-tertiary)]">{t('C++ starter')}</label>
               <textarea
                 rows={4}
                 value={probCppStarter}
@@ -582,7 +642,7 @@ export function AdminComposerView() {
             {saving ? 'Publishing...' : 'Publish challenge'}
           </button>
         </form>
-      ) : (
+      ) : tab === 'workshop' ? (
         <form
           onSubmit={(e) => void handleCreateWorkshop(e)}
           className="rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-6 space-y-5"
@@ -680,14 +740,14 @@ export function AdminComposerView() {
               type="text"
               value={wsPrereq}
               onChange={(e) => setWsPrereq(e.target.value)}
-              placeholder="Prerequisites..."
+              placeholder={t('Prerequisites...')}
               className="min-h-[40px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm text-[var(--text-primary)]"
             />
             <input
               type="url"
               value={wsLocation}
               onChange={(e) => setWsLocation(e.target.value)}
-              placeholder="Discord / Google Meet URL"
+              placeholder={t('Discord / Google Meet URL')}
               className="min-h-[40px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm text-[var(--text-primary)]"
             />
           </div>
@@ -697,22 +757,52 @@ export function AdminComposerView() {
               type="url"
               value={wsSlides}
               onChange={(e) => setWsSlides(e.target.value)}
-              placeholder="Slides URL (optional)"
+              placeholder={t('Slides URL (optional)')}
               className="min-h-[40px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm text-[var(--text-primary)]"
             />
             <input
               type="url"
               value={wsRepo}
               onChange={(e) => setWsRepo(e.target.value)}
-              placeholder="Repository URL (optional)"
+              placeholder={t('Repository URL (optional)')}
               className="min-h-[40px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm text-[var(--text-primary)]"
             />
             <input
               type="url"
               value={wsNotebook}
               onChange={(e) => setWsNotebook(e.target.value)}
-              placeholder="Colab Notebook URL (optional)"
+              placeholder={t('Colab Notebook URL (optional)')}
               className="min-h-[40px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm text-[var(--text-primary)]"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              type="url"
+              value={wsProblemSet}
+              onChange={(e) => setWsProblemSet(e.target.value)}
+              placeholder={t('Problem set URL (optional)')}
+              className="min-h-[40px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm text-[var(--text-primary)]"
+            />
+            <input
+              type="url"
+              value={wsReplay}
+              onChange={(e) => setWsReplay(e.target.value)}
+              placeholder={t('Replay / video URL (optional)')}
+              className="min-h-[40px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm text-[var(--text-primary)]"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="w-agenda" className="block text-xs font-medium text-[var(--text-secondary)]">
+              {t('Agenda (one item per line)')}
+            </label>
+            <textarea
+              id="w-agenda"
+              rows={3}
+              value={wsAgenda}
+              onChange={(e) => setWsAgenda(e.target.value)}
+              className="w-full p-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm text-[var(--text-primary)]"
             />
           </div>
 
@@ -723,7 +813,7 @@ export function AdminComposerView() {
               onChange={(e) => setWsUpcoming(e.target.checked)}
               className="w-4 h-4 accent-[var(--brand-primary)]"
             />
-            <span>Feature as the upcoming live session</span>
+            <span>{t('Feature as the upcoming live session')}</span>
           </label>
 
           <div>
@@ -732,9 +822,111 @@ export function AdminComposerView() {
               disabled={saving}
               className="min-h-[44px] px-5 py-2.5 rounded-lg text-sm font-semibold bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] disabled:opacity-50 transition-colors"
             >
-              {saving ? 'Publishing...' : 'Publish workshop'}
+              {saving ? t('Publishing...') : t('Publish workshop')}
             </button>
           </div>
+        </form>
+      ) : (
+        <form
+          onSubmit={(e) => void handleAwardMember(e)}
+          className="rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-6 space-y-5"
+        >
+          <div className="space-y-1">
+            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+              {t('Member Awards')}
+            </h2>
+            <p className="text-xs text-[var(--text-secondary)]">
+              {t('Award XP and badges to an individual member.')}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label htmlFor="a-member" className="block text-xs font-medium text-[var(--text-secondary)]">
+                {t('Find a member...')}
+              </label>
+              <select
+                id="a-member"
+                required
+                value={awardUid}
+                onChange={(e) => setAwardUid(e.target.value)}
+                className="w-full min-h-[40px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm text-[var(--text-primary)]"
+              >
+                <option value="">{t('Find a member...')}</option>
+                {leaderboard.map((member) => (
+                  <option key={member.uid} value={member.uid}>
+                    {member.nickname} · {member.xp} XP
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label htmlFor="a-xp" className="block text-xs font-medium text-[var(--text-secondary)]">
+                {t('XP to award')}
+              </label>
+              <input
+                id="a-xp"
+                type="number"
+                min={0}
+                max={500}
+                value={awardXp}
+                onChange={(e) => setAwardXp(Number(e.target.value))}
+                className="w-full min-h-[40px] px-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] text-sm font-mono text-[var(--text-primary)]"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-xs font-medium text-[var(--text-secondary)]">{t('Badges')}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {BADGE_CATALOG.map((badge) => {
+                const checked = awardBadgeIds.includes(badge.id);
+                return (
+                  <label
+                    key={badge.id}
+                    className={`inline-flex items-start gap-2 rounded-lg border px-3 py-2 text-xs cursor-pointer transition-colors ${
+                      checked
+                        ? 'border-[var(--brand-primary)]/60 bg-[var(--brand-primary)]/10 text-[var(--text-primary)]'
+                        : 'border-[var(--surface-border)] bg-[var(--surface-deep)] text-[var(--text-secondary)]'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e) => {
+                        setAwardBadgeIds((prev) =>
+                          e.target.checked
+                            ? [...prev, badge.id]
+                            : prev.filter((id) => id !== badge.id)
+                        );
+                      }}
+                      className="mt-0.5 w-4 h-4 accent-[var(--brand-primary)]"
+                    />
+                    <span>
+                      <span className="block font-medium text-[var(--text-primary)]">
+                        {language === 'ru' ? badge.labelRu : badge.label}
+                      </span>
+                      <span className="block text-[11px] text-[var(--text-tertiary)]">
+                        {language === 'ru' ? badge.descriptionRu : badge.description}
+                      </span>
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-[var(--text-tertiary)]">
+              {t('Award XP and badges to members.')}
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            disabled={awardBusy}
+            className="min-h-[44px] px-5 py-2.5 rounded-lg text-sm font-semibold bg-[var(--brand-primary)] text-[var(--brand-ink)] hover:bg-[var(--brand-primary-hover)] disabled:opacity-50 transition-colors"
+          >
+            {awardBusy ? t('Updating...') : t('Award XP and badges')}
+          </button>
         </form>
       )}
     </motion.div>
