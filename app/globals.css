@@ -1,38 +1,68 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
+/*
+  THINK//CODE visual system
+  Dark indigo canvas. Electric green is the primary accent; Blurple is the
+  secondary accent. Surfaces stay dark and restrained, with compact geometry:
+  8–12px controls, 12–16px cards, 20px media and feature panels.
+*/
 :root {
-  --font-dm-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-jetbrains-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  --font-display-family: "Space Grotesk", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 
-  --surface-deep: #121113;
-  --surface-raised: #1A191C;
-  --surface-overlay: #242327;
-  --surface-border: #424242;
+  /* Canvas */
+  --surface-deep: #06081c;
+  --surface-raised: #0e1230;
+  --surface-overlay: #171c3d;
+  --surface-border: #252c55;
+  --surface-black: #000000;
 
-  --text-primary: #FFFFFF;
-  --text-secondary: #B8B8BC;
-  --text-tertiary: #8A898F;
+  /* Text */
+  --text-primary: #ffffff;
+  --text-secondary: #b6bcdc;
+  --text-tertiary: #7b83ab;
 
-  --brand-primary: #9EFF00;
-  --brand-primary-hover: #B6FF3A;
-  --brand-ink: #121113;
+  /* Primary accent — electric green */
+  --brand-primary: #35ed7e;
+  --brand-primary-hover: #5cf295;
+  --brand-primary-ink: #04140a;
+  /* Legacy alias kept so existing components inherit the green primary ink. */
+  --brand-ink: var(--brand-primary-ink);
 
-  --accent-cyan: #03EDFA;
-  --accent-amber: #F8A502;
+  /* Secondary accent — Blurple */
+  --brand-secondary: #5865f2;
+  --brand-secondary-hover: #727bf5;
+  --brand-secondary-soft: #8b95ff;
+  --brand-secondary-ink: #ffffff;
 
-  --status-success: #9EFF00;
-  --status-warning: #F8A502;
-  --status-error: #FF5C5C;
-  --status-info: #03EDFA;
+  /* Functional aliases used across the workspace */
+  --brand-link: var(--brand-secondary-soft);
+  --accent-cyan: var(--brand-secondary-soft);
+
+  --status-success: #35ed7e;
+  --status-warning: #f8a502;
+  --status-error: #ff5c5c;
+  --status-info: var(--brand-secondary-soft);
 
   color-scheme: dark;
 }
 
 @theme inline {
-  --font-display: var(--font-dm-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-sans: var(--font-dm-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  --font-display: var(--font-display-family);
+  --font-sans: var(--font-body-family);
+  --font-mono: var(--font-mono-family);
+
+  /* Compact geometry: controls 6–10px, cards 12–16px, panels 20–24px. */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+  --radius-4xl: 24px;
 }
 
 @layer base {
@@ -50,8 +80,19 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.015em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
     text-wrap: balance;
+  }
+
+  h1 {
+    line-height: 1.02;
+  }
+
+  h2,
+  h3 {
+    line-height: 1.08;
   }
 
   code,
@@ -71,7 +112,49 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Landing-page lighting: each accent has one clear visual role without competing with lime. */
+/* Display type: the loud, tracked-tight headline voice. */
+.display-hero {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.035em;
+  line-height: 0.94;
+}
+
+.display-band {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.025em;
+  line-height: 0.98;
+}
+
+.text-brand-gradient {
+  background: linear-gradient(100deg, var(--brand-primary) 0%, var(--brand-secondary-soft) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Static dark atmosphere for the signed-in workspace. */
+.app-canvas {
+  position: relative;
+  isolation: isolate;
+}
+
+.app-canvas::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 58% 46% at 10% 0%, color-mix(in srgb, var(--brand-primary) 7%, transparent), transparent 62%),
+    radial-gradient(ellipse 46% 40% at 90% 6%, color-mix(in srgb, var(--brand-secondary) 8%, transparent), transparent 62%),
+    radial-gradient(ellipse 70% 45% at 50% 108%, color-mix(in srgb, var(--brand-primary) 4%, transparent), transparent 66%);
+}
+
+/* Landing hero: the animated green-to-Blurple mesh. */
 .hero-stage {
   position: relative;
   isolation: isolate;
@@ -81,44 +164,87 @@
 .hero-stage::before {
   position: absolute;
   z-index: -1;
-  inset: -20% 5% 12%;
+  inset: -32% -12% -14%;
   content: "";
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 50% 18%, color-mix(in srgb, var(--brand-primary) 13%, transparent), transparent 52%),
-    radial-gradient(ellipse at 22% 64%, color-mix(in srgb, var(--accent-cyan) 8%, transparent), transparent 42%),
-    radial-gradient(ellipse at 78% 62%, color-mix(in srgb, var(--accent-amber) 7%, transparent), transparent 40%);
-  filter: blur(14px);
+    radial-gradient(ellipse 42% 44% at 28% 24%, color-mix(in srgb, var(--brand-primary) 18%, transparent), transparent 62%),
+    radial-gradient(ellipse 38% 40% at 72% 28%, color-mix(in srgb, var(--brand-secondary) 18%, transparent), transparent 64%),
+    radial-gradient(ellipse 48% 42% at 52% 82%, color-mix(in srgb, var(--brand-primary) 9%, transparent), transparent 66%);
+  filter: blur(40px);
+  animation: mesh-drift 24s ease-in-out infinite alternate;
+}
+
+@keyframes mesh-drift {
+  from {
+    transform: translate3d(-3%, -2%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(4%, 3%, 0) scale(1.12);
+  }
 }
 
 .hero-visual {
   box-shadow:
-    0 24px 72px color-mix(in srgb, var(--brand-primary) 8%, transparent),
-    0 8px 32px color-mix(in srgb, var(--accent-cyan) 5%, transparent);
+    0 24px 70px color-mix(in srgb, var(--brand-primary) 14%, transparent),
+    0 10px 40px color-mix(in srgb, var(--brand-secondary) 12%, transparent);
+}
+
+/* Full-bleed GIF frames: rounded, never padded. */
+.gif-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-3xl);
+  border: 1px solid var(--surface-border);
+  background-color: var(--surface-black);
+}
+
+.gif-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Dark feature surface with restrained green/Blurple light. */
+.feature-gradient {
+  background:
+    radial-gradient(ellipse at 18% 12%, color-mix(in srgb, var(--brand-primary) 12%, transparent), transparent 58%),
+    radial-gradient(ellipse at 88% 88%, color-mix(in srgb, var(--brand-secondary) 16%, transparent), transparent 62%),
+    var(--surface-raised);
+}
+
+.glow-green {
+  box-shadow: 0 22px 64px color-mix(in srgb, var(--brand-primary) 15%, transparent);
+}
+
+.glow-blurple {
+  box-shadow: 0 22px 64px color-mix(in srgb, var(--brand-secondary) 18%, transparent);
 }
 
 .ambient-card {
   --card-accent: var(--brand-primary);
   position: relative;
-  box-shadow: 0 12px 32px color-mix(in srgb, var(--card-accent) 4%, transparent);
-  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+  box-shadow: 0 16px 48px rgba(2, 4, 14, 0.65);
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 200ms ease,
+    background-color 200ms ease;
 }
 
-.ambient-card--lime {
+.ambient-card--green {
   --card-accent: var(--brand-primary);
 }
 
-.ambient-card--cyan {
-  --card-accent: var(--accent-cyan);
-}
-
-.ambient-card--amber {
-  --card-accent: var(--accent-amber);
+.ambient-card--blurple {
+  --card-accent: var(--brand-secondary-soft);
 }
 
 .ambient-card:hover {
   border-color: color-mix(in srgb, var(--card-accent) 55%, var(--surface-border));
-  box-shadow: 0 16px 44px color-mix(in srgb, var(--card-accent) 9%, transparent);
+  box-shadow: 0 22px 62px color-mix(in srgb, var(--card-accent) 14%, transparent);
+  transform: translateY(-2px);
 }
 
 .ambient-card .track-arrow {
@@ -126,7 +252,35 @@
 }
 
 .ambient-card .track-node {
-  background-color: color-mix(in srgb, var(--card-accent) 22%, var(--surface-overlay));
+  background-color: color-mix(in srgb, var(--card-accent) 26%, var(--surface-overlay));
+}
+
+/* Scrolling all-caps marquee band. */
+.marquee {
+  overflow: hidden;
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-stage::before,
+  .marquee-track {
+    animation: none;
+  }
+
+  .ambient-card:hover {
+    transform: none;
+  }
 }
 
 /* Custom hairline scrollbars for editor & reading rails */

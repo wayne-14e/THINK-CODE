@@ -187,15 +187,16 @@ export function WorkshopsView() {
       {/* Upcoming Workshop Visual Showcase */}
       {upcoming && (
         <section className="rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-raised)] overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch">
-          <div className="lg:col-span-5 relative min-h-[220px] border-b lg:border-b-0 lg:border-r border-[var(--surface-border)]">
+          <div className="lg:col-span-5 relative min-h-[280px] border-b lg:border-b-0 lg:border-r border-[var(--surface-border)]">
             <Image
-              src="/images/illustration-hero.png"
+              src="/images/workshops.gif"
               alt={t('Live Problem Breakdown')}
               fill
+              unoptimized
               sizes="(max-width: 1024px) 100vw, 40vw"
-              className="object-contain p-6"
+              className="object-cover"
             />
-            <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[var(--surface-raised)] to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[var(--surface-raised)] via-[var(--surface-raised)]/70 to-transparent" />
             <div className="absolute bottom-4 left-5 right-5 flex items-center justify-between text-xs font-mono text-[var(--text-secondary)]">
               <span className="text-[var(--brand-primary)]">
                 {t('Workshop {issue}', { issue: upcoming.issueNumber })}
@@ -249,7 +250,7 @@ export function WorkshopsView() {
               )}
             </div>
 
-            {rsvpMessage && <p className="text-xs text-[var(--accent-amber)]">{rsvpMessage}</p>}
+            {rsvpMessage && <p className="text-xs text-[var(--status-warning)]">{rsvpMessage}</p>}
 
             <div className="flex flex-wrap items-center gap-3">
               <button
@@ -336,7 +337,7 @@ export function WorkshopsView() {
                       aria-pressed={!feedbackWorks}
                       className={`min-h-[34px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                         !feedbackWorks
-                          ? 'border-[var(--accent-amber)]/60 bg-[var(--accent-amber)]/10 text-[var(--accent-amber)]'
+                          ? 'border-[var(--status-warning)]/60 bg-[var(--status-warning)]/10 text-[var(--status-warning)]'
                           : 'border-[var(--surface-border)] bg-[var(--surface-overlay)] text-[var(--text-secondary)]'
                       }`}
                     >

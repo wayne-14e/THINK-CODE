@@ -96,9 +96,9 @@ export function AppShell({
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--surface-deep)] text-[var(--text-primary)]">
+    <div className="app-canvas min-h-screen flex flex-col bg-[var(--surface-deep)] text-[var(--text-primary)]">
       {/* 3-Zone Top Navigation Bar */}
-      <header className="sticky top-0 z-30 h-14 border-b border-[var(--surface-border)] bg-[var(--surface-raised)] px-4 lg:px-6 flex items-center justify-between gap-6">
+      <header className="sticky top-0 z-30 h-14 border-b border-[var(--surface-border)] bg-[var(--surface-deep)]/85 backdrop-blur-md px-4 lg:px-6 flex items-center justify-between gap-6">
         {/* Zone 1: Brand Logo + Wordmark */}
         <div className="flex items-center gap-3 min-w-0">
           <button
@@ -203,7 +203,7 @@ export function AppShell({
                       sidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-3 py-2'
                     } ${
                       active
-                        ? 'bg-[var(--surface-overlay)] text-[var(--text-primary)] border border-[var(--surface-border)]'
+                        ? 'bg-[var(--brand-primary)]/15 text-[var(--text-primary)] border border-[var(--brand-primary)]/45'
                         : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-overlay)]/60 border border-transparent'
                     }`}
                   >

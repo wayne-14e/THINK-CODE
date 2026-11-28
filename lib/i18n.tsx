@@ -98,6 +98,19 @@ const RU: Record<string, string> = {
   '{tracks} Tracks · {problems} Challenges': '{tracks} треков · {problems} задач',
   'Python · JavaScript · C++': 'Python · JavaScript · C++',
   'Brand logo': 'Логотип бренда',
+  'See how it works': 'Как это работает',
+  'A cat typing code at a desk': 'Кот печатает код за столом',
+  'An animated function working through its steps': 'Анимированная функция проходит по шагам',
+  'Paper first': 'Сначала бумага',
+  'Learning path': 'Учебный путь',
+  'From first principles to competitive programming, one deliberate step at a time.':
+    'От основ до спортивного программирования — по одному осознанному шагу.',
+  'Ready to think in code?': 'Готовы думать кодом?',
+  'Join the next workshop, trace your first problem, and build interview-ready habits with people who care.':
+    'Присоединяйтесь к следующему воркшопу, разберите первую задачу и готовьтесь к собеседованиям вместе с теми, кому не всё равно.',
+  Think: 'Думай',
+  Code: 'Кодируй',
+  Repeat: 'Повторяй',
 
   // Overview
   'Daily Challenge': 'Задача дня',

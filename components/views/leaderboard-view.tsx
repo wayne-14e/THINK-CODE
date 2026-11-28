@@ -90,7 +90,7 @@ export function LeaderboardView() {
                   <span className="font-mono text-xs text-[var(--text-tertiary)]">#{idx + 1}</span>
                   <Trophy
                     className={`w-4 h-4 ${
-                      idx === 0 ? 'text-[var(--brand-primary)]' : 'text-[var(--accent-amber)]'
+                      idx === 0 ? 'text-[var(--brand-primary)]' : 'text-[var(--brand-secondary-soft)]'
                     }`}
                   />
                 </div>

@@ -203,7 +203,7 @@ export function ProfileView() {
                   )}
                   {medW > 0 && (
                     <div
-                      className="h-full bg-[var(--accent-amber)] transition-all"
+                      className="h-full bg-[var(--brand-secondary-soft)] transition-all"
                       style={{ width: `${medW}%` }}
                     />
                   )}
@@ -225,7 +225,7 @@ export function ProfileView() {
                 </p>
               </div>
               <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface-deep)] p-3">
-                <p className="text-xs text-[var(--accent-amber)]">{t('Medium')}</p>
+                <p className="text-xs text-[var(--brand-secondary-soft)]">{t('Medium')}</p>
                 <p className="mt-1 text-lg font-bold text-[var(--text-primary)]">
                   {publicProfile.solvedMedium}
                 </p>

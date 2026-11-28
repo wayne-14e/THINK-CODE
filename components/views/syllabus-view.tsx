@@ -83,7 +83,7 @@ export function SyllabusView({ onOpenProblem }: SyllabusViewProps) {
       </div>
 
       {notice && (
-        <div className="rounded-lg border border-[var(--accent-amber)]/40 bg-[var(--surface-raised)] px-4 py-2.5 text-xs text-[var(--accent-amber)]">
+        <div className="rounded-lg border border-[var(--status-warning)]/40 bg-[var(--surface-raised)] px-4 py-2.5 text-xs text-[var(--status-warning)]">
           {notice}
         </div>
       )}
@@ -224,7 +224,7 @@ export function SyllabusView({ onOpenProblem }: SyllabusViewProps) {
 
                   {expanded && (
                     <div className="px-5 pb-5 pt-4 border-t border-[var(--surface-border)] bg-[var(--surface-deep)]/40">
-                      <div className="prose prose-sm prose-invert max-w-[72ch] text-[var(--text-secondary)] prose-headings:text-[var(--text-primary)] prose-code:text-[var(--accent-cyan)] prose-pre:bg-[var(--surface-deep)] prose-pre:border prose-pre:border-[var(--surface-border)]">
+                      <div className="prose prose-sm prose-invert max-w-[72ch] text-[var(--text-secondary)] prose-headings:text-[var(--text-primary)] prose-code:text-[var(--accent-cyan)] prose-a:text-[var(--brand-link)] prose-strong:text-[var(--text-primary)] prose-pre:bg-[var(--surface-deep)] prose-pre:border prose-pre:border-[var(--surface-border)]">
                         <Markdown>{mod.theoryMarkdown}</Markdown>
                       </div>
                     </div>

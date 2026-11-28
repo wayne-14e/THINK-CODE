@@ -13,13 +13,13 @@ interface ChallengesViewProps {
 
 const DIFFICULTY_TEXT: Record<Difficulty, string> = {
   easy: 'text-[var(--status-success)]',
-  medium: 'text-[var(--accent-amber)]',
+  medium: 'text-[var(--brand-secondary-soft)]',
   hard: 'text-[var(--status-error)]',
 };
 
 const DIFFICULTY_BAR: Record<Difficulty, string> = {
   easy: 'bg-[var(--status-success)]',
-  medium: 'bg-[var(--accent-amber)]',
+  medium: 'bg-[var(--brand-secondary-soft)]',
   hard: 'bg-[var(--status-error)]',
 };
 

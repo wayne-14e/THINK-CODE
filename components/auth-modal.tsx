@@ -45,7 +45,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
             transition={{ duration: 0.16, ease: 'easeOut' }}
-            className="w-full max-w-md rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.16)]"
+            className="w-full max-w-md rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-6 shadow-[0_24px_80px_rgba(88,101,242,0.28)]"
           >
             <div className="flex items-start justify-between gap-4">
               <div>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import Editor from '@monaco-editor/react';
+import Editor, { type BeforeMount } from '@monaco-editor/react';
 import Markdown from 'react-markdown';
 import {
   AlertCircle,
@@ -47,6 +47,41 @@ const MONACO_LANGUAGE: Record<Language, string> = {
   python: 'python',
   javascript: 'javascript',
   cpp: 'cpp',
+};
+
+const defineThinkCodeTheme: BeforeMount = (monaco) => {
+  monaco.editor.defineTheme('thinkcode-dark', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [
+      { token: 'comment', foreground: '6b7399', fontStyle: 'italic' },
+      { token: 'keyword', foreground: '35ed7e' },
+      { token: 'string', foreground: '8b95ff' },
+      { token: 'number', foreground: '5cf295' },
+      { token: 'type', foreground: 'b6bcdc' },
+      { token: 'function', foreground: 'ffffff' },
+    ],
+    colors: {
+      'editor.background': '#06081c',
+      'editor.foreground': '#ffffff',
+      'editorLineNumber.foreground': '#4c5480',
+      'editorLineNumber.activeForeground': '#b6bcdc',
+      'editor.selectionBackground': '#5865f266',
+      'editor.inactiveSelectionBackground': '#5865f233',
+      'editor.lineHighlightBackground': '#0e1230',
+      'editorCursor.foreground': '#35ed7e',
+      'editorIndentGuide.background1': '#171c3d',
+      'editorIndentGuide.activeBackground1': '#5865f2',
+      'editorWidget.background': '#0e1230',
+      'editorWidget.border': '#252c55',
+      'editorSuggestWidget.background': '#0e1230',
+      'editorSuggestWidget.border': '#252c55',
+      'editorSuggestWidget.selectedBackground': '#5865f2',
+      'scrollbarSlider.background': '#252c5580',
+      'scrollbarSlider.hoverBackground': '#7b83ab80',
+      'scrollbarSlider.activeBackground': '#7b83abaa',
+    },
+  });
 };
 
 function StatusBadge({ status }: { status: SubmissionStatus | 'Running' }) {
@@ -348,7 +383,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
       <div className="flex-1 overflow-y-auto p-5 space-y-6">
         {leftTab === 'description' && (
           <div className="space-y-6">
-            <div className="prose prose-sm prose-invert max-w-none text-[var(--text-secondary)] prose-headings:text-[var(--text-primary)] prose-code:text-[var(--accent-cyan)]">
+            <div className="prose prose-sm prose-invert max-w-none text-[var(--text-secondary)] prose-headings:text-[var(--text-primary)] prose-code:text-[var(--accent-cyan)] prose-a:text-[var(--brand-link)] prose-strong:text-[var(--text-primary)]">
               <Markdown>{problem.description}</Markdown>
             </div>
 
@@ -471,7 +506,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
             <p className="text-xs font-mono text-[var(--text-tertiary)]">
               {t('Official Academy Editorial')}
             </p>
-            <div className="prose prose-sm prose-invert max-w-none text-[var(--text-secondary)] prose-headings:text-[var(--text-primary)] prose-code:text-[var(--accent-cyan)]">
+            <div className="prose prose-sm prose-invert max-w-none text-[var(--text-secondary)] prose-headings:text-[var(--text-primary)] prose-code:text-[var(--accent-cyan)] prose-a:text-[var(--brand-link)] prose-strong:text-[var(--text-primary)]">
               <Markdown>{problem.editorial}</Markdown>
             </div>
           </div>
@@ -664,18 +699,19 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
       </div>
 
       {/* Monaco Editor */}
-      <div className="flex-1 min-h-[260px]">
+      <div className="flex-1 min-h-[260px] bg-[var(--surface-deep)]">
         <Editor
           height="100%"
           language={MONACO_LANGUAGE[language]}
-          theme="vs-dark"
+          theme="thinkcode-dark"
+          beforeMount={defineThinkCodeTheme}
           value={codeByLang[language]}
           onChange={handleCodeChange}
           options={{
             minimap: { enabled: false },
             fontSize: 14,
             lineHeight: 21,
-            fontFamily: 'var(--font-jetbrains-mono), ui-monospace, monospace',
+            fontFamily: 'var(--font-mono-family), ui-monospace, monospace',
             padding: { top: 14, bottom: 14 },
             scrollBeyondLastLine: false,
             automaticLayout: true,
@@ -723,7 +759,7 @@ export function SandboxView({ problem, onBack }: SandboxViewProps) {
       </div>
 
       {execSummary?.message && (
-        <div className="flex items-start gap-2 rounded-lg border border-[var(--accent-amber)]/40 bg-[var(--surface-deep)] p-3 text-xs text-[var(--accent-amber)]">
+        <div className="flex items-start gap-2 rounded-lg border border-[var(--status-warning)]/40 bg-[var(--surface-deep)] p-3 text-xs text-[var(--status-warning)]">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{execSummary.message}</span>
         </div>

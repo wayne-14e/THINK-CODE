@@ -192,7 +192,7 @@ export function OverviewView({ onOpenProblem, onNavigate }: OverviewViewProps) {
               {publicProfile?.xp ?? 0}
             </p>
           </div>
-          <Trophy className="w-6 h-6 text-[var(--accent-amber)] shrink-0" />
+          <Trophy className="w-6 h-6 text-[var(--brand-secondary-soft)] shrink-0" />
         </div>
 
         <div className="rounded-xl border border-[var(--surface-border)] bg-[var(--surface-raised)] p-4 flex items-center justify-between gap-3">

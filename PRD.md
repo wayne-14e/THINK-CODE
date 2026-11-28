@@ -56,7 +56,7 @@ The following describes the checked repository, not a production deployment clai
 | Workshops | Upcoming workshop information, agenda, RSVP/cancel RSVP, external session link, optional replay and supporting materials, topic feedback with a required alternative suggestion, and an archive UI for past workshop resources. |
 | Admin content tools | Passcode-based admin elevation, a composer for problems and workshops (including agenda, replay, and materials), starter-curriculum sync, and manual XP/badge awards to individual members. |
 | Community and feedback | Telegram, Discord, and feedback-form links render only when the owner configures their public environment variables; unset links are hidden rather than replaced with placeholders. |
-| Visual system | Dark-only charcoal UI with lime, cyan, and amber semantic accents. Inter is used for interface text and headings; JetBrains Mono is reserved for code, metrics, and short technical labels. Illustrations remain only on the landing page and the upcoming workshop card; see `DESIGN.md`. |
+| Visual system | Dark-indigo canvas with electric green as the primary accent and Blurple as the secondary accent. Space Grotesk display headings (all caps), Inter interface/body text, and JetBrains Mono for code and metrics. Compact radii with darker surfaces. Animated GIFs appear full-bleed with rounded corners in the landing hero, trace-check section, and workshop showcase; see `DESIGN.md`. |
 
 ### Known implementation gaps
 
